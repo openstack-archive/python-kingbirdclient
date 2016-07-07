@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = python-kingbirdclient
+omit = python-kingbirdclient/openstack/*
+
+[report]
+ignore_errors = True
