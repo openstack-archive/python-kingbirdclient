@@ -4,7 +4,7 @@
 # not use this file except in compliance with the License. You may obtain
 # a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#         http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
@@ -12,7 +12,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import pbr.version
+from kingbirdclient.common import utils
 
 
-__version__ = pbr.version.VersionInfo('python-kingbirdclient').version_string()
+def Client(api_ver, *args, **kwargs):
+    """Import versioned client module.
+
+    :param api_ver: API version required.
+    """
+    module = utils.import_versioned_module(api_ver, 'client')
+    cls = getattr(module, 'Client')
+    return cls(*args, **kwargs)
