@@ -289,19 +289,6 @@ class KingbirdShell(app.App):
                  '(Env: KINGBIRDCLIENT_INSECURE)'
         )
 
-        parser.add_argument(
-            '--profile',
-            dest='profile',
-            metavar='HMAC_KEY',
-            help='HMAC key to use for encrypting context data for performance '
-                 'profiling of operation. This key should be one of the '
-                 'values configured for the osprofiler middleware in mistral, '
-                 'it is specified in the profiler section of the mistral '
-                 'configuration (i.e. /etc/kingbird/kingbird.conf). '
-                 'Without the key, profiling will not be triggered even if '
-                 'osprofiler is enabled on the server side.'
-        )
-
         return parser
 
     def initialize_app(self, argv):
@@ -335,8 +322,7 @@ class KingbirdShell(app.App):
             service_type=self.options.service_type,
             auth_token=self.options.token,
             cacert=self.options.cacert,
-            insecure=self.options.insecure,
-            profile=self.options.profile
+            insecure=self.options.insecure
         )
 
     def _set_shell_commands(self, cmds_dict):
