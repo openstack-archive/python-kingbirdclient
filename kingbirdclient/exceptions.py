@@ -38,3 +38,12 @@ class IllegalArgumentException(KingbirdClientException):
     def __init__(self, message=None):
         if message:
             self.message = message
+
+
+class CommandError(KingbirdClientException):
+    message = "CommandErrorException occurred"
+    code = "COMMAND_ERROR_EXCEPTION"
+
+    def __init__(self, message=None):
+        if message:
+            self.message = message
