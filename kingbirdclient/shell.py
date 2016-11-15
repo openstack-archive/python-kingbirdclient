@@ -21,6 +21,7 @@ import sys
 
 from kingbirdclient import __version__ as kingbird_version
 from kingbirdclient.api import client
+from kingbirdclient import exceptions
 from kingbirdclient.openstack.common import cliutils as c
 
 from cliff import app
@@ -289,19 +290,6 @@ class KingbirdShell(app.App):
                  '(Env: KINGBIRDCLIENT_INSECURE)'
         )
 
-        parser.add_argument(
-            '--profile',
-            dest='profile',
-            metavar='HMAC_KEY',
-            help='HMAC key to use for encrypting context data for performance '
-                 'profiling of operation. This key should be one of the '
-                 'values configured for the osprofiler middleware in mistral, '
-                 'it is specified in the profiler section of the mistral '
-                 'configuration (i.e. /etc/kingbird/kingbird.conf). '
-                 'Without the key, profiling will not be triggered even if '
-                 'osprofiler is enabled on the server side.'
-        )
-
         return parser
 
     def initialize_app(self, argv):
@@ -311,18 +299,32 @@ class KingbirdShell(app.App):
 
         self._set_shell_commands(self._get_commands(ver))
 
-        do_help = ('help' in argv) or ('-h' in argv) or not argv
-
-        # Set default for auth_url if not supplied. The default is not
-        # set at the parser to support use cases where auth is not enabled.
-        # An example use case would be a developer's environment.
-        if not self.options.auth_url:
-            if self.options.password or self.options.token:
-                self.options.auth_url = 'http://localhost:35357/v3'
+        do_help = ['help', '-h', 'bash-completion']
 
         # bash-completion should not require authentication.
-        if do_help or ('bash-completion' in argv):
+        skip_auth = ''.join(argv) in do_help
+
+        if skip_auth:
             self.options.auth_url = None
+
+        if self.options.auth_url and not self.options.token \
+            and not skip_auth:
+            if not self.options.tenant_name:
+                raise exceptions.CommandError(
+                    ("You must provide a tenant_name "
+                     "via --os-tenantname env[OS_TENANT_NAME]")
+                )
+            if not self.options.username:
+                raise exceptions.CommandError(
+                    ("You must provide a username "
+                     "via --os-username env[OS_USERNAME]")
+                )
+
+            if not self.options.password:
+                raise exceptions.CommandError(
+                    ("You must provide a password "
+                     "via --os-password env[OS_PASSWORD]")
+                )
 
         self.client = client.client(
             kingbird_url=self.options.kingbird_url,
@@ -335,9 +337,16 @@ class KingbirdShell(app.App):
             service_type=self.options.service_type,
             auth_token=self.options.token,
             cacert=self.options.cacert,
-            insecure=self.options.insecure,
-            profile=self.options.profile
+            insecure=self.options.insecure
         )
+
+        if not self.options.auth_url and not skip_auth:
+            raise exceptions.CommandError(
+                ("You must provide an auth url via either"
+                 "--os-auth-url or env[OS_AUTH_URL] or "
+                 "specify an auth_system which defines a"
+                 " default url with --os-auth-system or env[OS_AUTH_SYSTEM]")
+                )
 
     def _set_shell_commands(self, cmds_dict):
         for k, v in cmds_dict.items():
