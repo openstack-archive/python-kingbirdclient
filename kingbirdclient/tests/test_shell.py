@@ -31,7 +31,7 @@ class TestShell(base.BaseShellTests):
     @mock.patch('kingbirdclient.api.client.determine_client_version')
     def test_default_kingbird_version(self, mock):
         default_version = 'v1.0'
-        self.shell('quota-defaults')
+        self.shell('quota defaults')
         self.assertTrue(mock.called)
         kingbird_version = mock.call_args
         self.assertEqual(default_version, kingbird_version[0][0])
@@ -43,7 +43,7 @@ class TestShell(base.BaseShellTests):
             '--os-username=admin '
             '--os-password=1234 '
             '--os-tenant-name=admin '
-            'quota-defaults'
+            'quota defaults'
         )
         self.assertTrue(mock.called)
         params = mock.call_args
@@ -57,7 +57,7 @@ class TestShell(base.BaseShellTests):
             '--os-username=admin '
             '--os-password=1234 '
             '--os-tenant-name=admin '
-            'quota-defaults'
+            'quota defaults'
         )
         self.assertTrue(mock.called)
         params = mock.call_args
@@ -74,7 +74,7 @@ class TestShell(base.BaseShellTests):
 
     @mock.patch('kingbirdclient.api.client.client')
     def test_kb_default_service_type(self, mock):
-        self.shell('quota-defaults')
+        self.shell('quota defaults')
         self.assertTrue(mock.called)
         params = mock.call_args
         # Default service type is synchronization
@@ -89,7 +89,7 @@ class TestShell(base.BaseShellTests):
 
     @mock.patch('kingbirdclient.api.client.client')
     def test_kb_default_endpoint_type(self, mock):
-        self.shell('quota-defaults')
+        self.shell('quota defaults')
         self.assertTrue(mock.called)
         params = mock.call_args
         self.assertEqual('publicURL', params[1]['endpoint_type'])
@@ -98,7 +98,7 @@ class TestShell(base.BaseShellTests):
     def test_os_auth_token(self, mock):
         self.shell(
             '--os-auth-token=abcd1234 '
-            'quota-defaults'
+            'quota defaults'
         )
         self.assertTrue(mock.called)
         params = mock.call_args
@@ -107,7 +107,7 @@ class TestShell(base.BaseShellTests):
     @mock.patch('kingbirdclient.api.client.client')
     def test_command_without_kingbird_url(self, mock):
         self.shell(
-            'quota-defaults'
+            'quota defaults'
         )
         self.assertTrue(mock.called)
         params = mock.call_args
@@ -126,7 +126,7 @@ class TestShell(base.BaseShellTests):
     @mock.patch('kingbirdclient.api.client.client')
     def test_command_without_project_name(self, mock):
         self.shell(
-            'quota-defaults'
+            'quota defaults'
         )
         self.assertTrue(mock.called)
         params = mock.call_args
