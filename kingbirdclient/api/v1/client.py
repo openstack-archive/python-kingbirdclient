@@ -16,9 +16,8 @@
 
 import six
 
-import osprofiler.profiler
-
 from kingbirdclient.api import httpclient
+from kingbirdclient.api.v1 import quota_manager
 
 _DEFAULT_KINGBIRD_URL = "http://localhost:8118/v1.0"
 
@@ -28,7 +27,7 @@ class Client(object):
                  project_name=None, auth_url=None, project_id=None,
                  endpoint_type='publicURL', service_type='synchronization',
                  auth_token=None, user_id=None, cacert=None, insecure=False,
-                 profile=None, auth_type='keystone', client_id=None,
+                 auth_type='keystone', client_id=None,
                  client_secret=None):
 
         if kingbird_url and not isinstance(kingbird_url, six.string_types):
@@ -61,9 +60,6 @@ class Client(object):
         if not kingbird_url:
             kingbird_url = _DEFAULT_KINGBIRD_URL
 
-        if profile:
-            osprofiler.profiler.init(profile)
-
         self.http_client = httpclient.HTTPClient(
             kingbird_url,
             auth_token,
@@ -72,6 +68,9 @@ class Client(object):
             cacert=cacert,
             insecure=insecure
         )
+
+        # Create all resource managers
+        self.QuotaManager = quota_manager.QuotaManager(self.http_client)
 
 
 def authenticate(kingbird_url=None, username=None,
