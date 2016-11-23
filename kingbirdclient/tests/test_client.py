@@ -21,8 +21,6 @@ import uuid
 import mock
 import testtools
 
-import osprofiler.profiler
-
 from kingbirdclient.api import client
 
 AUTH_HTTP_URL = 'http://localhost:35357/v3'
@@ -178,38 +176,3 @@ class BaseClientTests(testtools.TestCase):
             os.unlink(path)
 
         self.assertTrue(log_warning_mock.called)
-
-    @mock.patch('keystoneclient.v3.client.Client')
-    @mock.patch('kingbirdclient.api.httpclient.HTTPClient')
-    def test_kingbird_profile_enabled(self, mock, keystone_client_mock):
-        keystone_client_instance = keystone_client_mock.return_value
-        keystone_client_instance.auth_token = str(uuid.uuid4())
-        keystone_client_instance.project_id = str(uuid.uuid4())
-        keystone_client_instance.user_id = str(uuid.uuid4())
-
-        expected_args = (
-            KINGBIRD_HTTP_URL,
-            keystone_client_instance.auth_token,
-            keystone_client_instance.project_id,
-            keystone_client_instance.user_id
-        )
-
-        expected_kwargs = {
-            'cacert': None,
-            'insecure': False
-        }
-
-        client.client(
-            username='kingbird',
-            project_name='kingbird',
-            auth_url=AUTH_HTTP_URL,
-            profile=PROFILER_HMAC_KEY
-        )
-
-        self.assertTrue(mock.called)
-        self.assertEqual(mock.call_args[0], expected_args)
-        self.assertDictEqual(mock.call_args[1], expected_kwargs)
-
-        profiler = osprofiler.profiler.get()
-
-        self.assertEqual(profiler.hmac_key, PROFILER_HMAC_KEY)

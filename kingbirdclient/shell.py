@@ -29,7 +29,7 @@ from cliff import commandmanager
 from osc_lib.command import command
 
 import argparse
-
+import kingbirdclient.commands.v1.quota_manager
 LOG = logging.getLogger(__name__)
 
 
@@ -348,6 +348,15 @@ class KingbirdShell(app.App):
                  " default url with --os-auth-system or env[OS_AUTH_SYSTEM]")
                 )
 
+        # Adding client_manager variable to make kingbird client work with
+        # unified OpenStack client.
+        ClientManager = type(
+            'ClientManager',
+            (object,),
+            dict(sync_engine=self.client)
+        )
+        self.client_manager = ClientManager()
+
     def _set_shell_commands(self, cmds_dict):
         for k, v in cmds_dict.items():
             self.command_manager.add_command(k, v)
@@ -370,6 +379,7 @@ class KingbirdShell(app.App):
     def _get_commands_v1():
         return {
             'bash-completion': BashCompletionCommand,
+            'quota-defaults': kingbirdclient.commands.v1.quota_manager.List,
         }
 
 
