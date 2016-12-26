@@ -394,6 +394,7 @@ class KingbirdShell(app.App):
         return {
             'bash-completion': BashCompletionCommand,
             'quota defaults': qm.ListDefaults,
+            'quota list': qm.GlobalLimits,
         }
 
 

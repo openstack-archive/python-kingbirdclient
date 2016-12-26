@@ -27,3 +27,10 @@ class quota_manager(base.ResourceManager):
         tenant = self.http_client.project_id
         url = '/%s/os-quota-sets/defaults' % tenant
         return self._list(url)
+
+    def global_limits(self, target_tenant_id):
+        tenant = self.http_client.project_id
+        if not target_tenant_id:
+            target_tenant_id = tenant
+        url = '/%s/os-quota-sets/%s' % (tenant, target_tenant_id)
+        return self._list(url)

@@ -38,3 +38,13 @@ class TestCLIQuotaManagerV1(base.BaseCommandTest):
         self.client.quota_manager.list_defaults.return_value = []
         actual_quota = self.call(quota_cmd.ListDefaults)
         self.assertEqual((('<none>', '<none>'),), actual_quota[1])
+
+    def test_global_limits(self):
+        self.client.quota_manager.global_limits.return_value = [QUOTAMANAGER]
+        actual_quota = self.call(quota_cmd.GlobalLimits)
+        self.assertEqual([('fake_item', '123')], actual_quota[1])
+
+    def test_negative_global_limits(self):
+        self.client.quota_manager.global_limits.return_value = []
+        actual_quota = self.call(quota_cmd.GlobalLimits)
+        self.assertEqual((('<none>', '<none>'),), actual_quota[1])
