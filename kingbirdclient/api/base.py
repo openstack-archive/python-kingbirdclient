@@ -50,6 +50,10 @@ def get_json(response):
     """Get JSON representation of response."""
     json_field_or_function = getattr(response, 'json', None)
     if callable(json_field_or_function):
+        if 'project_id' in response.json()['quota_set']:
+            response = response.json()
+            response['quota_set'].pop('project_id')
+            return response
         return response.json()
     else:
         return json.loads(response.content)
