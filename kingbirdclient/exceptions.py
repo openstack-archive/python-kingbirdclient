@@ -47,3 +47,10 @@ class CommandError(KingbirdClientException):
     def __init__(self, message=None):
         if message:
             self.message = message
+
+
+class APIException(Exception):
+    def __init__(self, error_code=None, error_message=None):
+        super(APIException, self).__init__(error_message)
+        self.error_code = error_code
+        self.error_message = error_message

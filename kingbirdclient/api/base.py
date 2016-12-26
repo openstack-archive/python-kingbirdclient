@@ -14,6 +14,8 @@
 
 import json
 
+from kingbirdclient import exceptions
+
 
 class Resource(object):
     # This will be overridden by the actual resource
@@ -31,19 +33,27 @@ class ResourceManager(object):
     def __init__(self, http_client):
         self.http_client = http_client
 
-    def _list(self, url, response_key=None):
-        resp = self.http_client.get(url)
-        if resp.status_code != 200:
-            self._raise_api_exception(resp)
-        json_response_key = get_json(resp)
+    def _generate_resource(self, json_response_key):
         json_objects = [json_response_key[item] for item in json_response_key]
-
         resource = []
         for json_object in json_objects:
             for resource_data in json_object:
                 resource.append(self.resource_class(self, resource_data,
                                 json_object[resource_data]))
         return resource
+
+    def _list(self, url, response_key=None):
+        resp = self.http_client.get(url)
+        if resp.status_code != 200:
+            self._raise_api_exception(resp)
+        json_response_key = get_json(resp)
+        resource = self._generate_resource(json_response_key)
+        return resource
+
+    def _raise_api_exception(self, resp):
+        error_data = resp.content
+        raise exceptions.APIException(error_code=resp.status_code,
+                                      error_message=error_data)
 
 
 def get_json(response):
