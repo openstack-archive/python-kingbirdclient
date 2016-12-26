@@ -45,11 +45,31 @@ class ResourceManager(object):
                                 json_object[resource_data]))
         return resource
 
+    def _raise_api_exception(self, resp):
+        try:
+            error_data = (resp.headers.get("Server-Error-Message", None) or
+                          get_json(resp).get("faultstring"))
+        except ValueError:
+            error_data = resp.content
+        raise APIException(error_code=resp.status_code,
+                           error_message=error_data)
+
 
 def get_json(response):
     """Get JSON representation of response."""
     json_field_or_function = getattr(response, 'json', None)
     if callable(json_field_or_function):
+        if 'project_id' in response.json()['quota_set']:
+            response = response.json()
+            response['quota_set'].pop('project_id')
+            return response
         return response.json()
     else:
         return json.loads(response.content)
+
+
+class APIException(Exception):
+    def __init__(self, error_code=None, error_message=None):
+        super(APIException, self).__init__(error_message)
+        self.error_code = error_code
+        self.error_message = error_message
