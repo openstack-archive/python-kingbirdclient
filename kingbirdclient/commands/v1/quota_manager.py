@@ -42,3 +42,25 @@ class ListDefaults(base.KingbirdLister):
     def _get_resources(self, parsed_args):
         kingbird_client = self.app.client_manager.sync_engine
         return kingbird_client.quota_manager.list_defaults()
+
+
+class GlobalLimits(base.KingbirdLister):
+    """Lists the global limit of a tenant."""
+
+    def _get_format_function(self):
+        return format
+
+    def get_parser(self, parsed_args):
+        parser = super(GlobalLimits, self).get_parser(parsed_args)
+
+        parser.add_argument(
+            '--tenant',
+            help='Lists global limit of a specified tenant (Admin only).'
+        )
+
+        return parser
+
+    def _get_resources(self, parsed_args):
+        kingbird_client = self.app.client_manager.sync_engine
+        target_tenant_id = parsed_args.tenant
+        return kingbird_client.quota_manager.global_limits(target_tenant_id)

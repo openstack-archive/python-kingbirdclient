@@ -14,6 +14,8 @@
 
 import json
 
+from kingbirdclient import exceptions
+
 
 class Resource(object):
     # This will be overridden by the actual resource
@@ -45,11 +47,23 @@ class ResourceManager(object):
                                 json_object[resource_data]))
         return resource
 
+    def _raise_api_exception(self, resp):
+        error_data = resp.content
+        raise exceptions.APIException(error_code=resp.status_code,
+                                      error_message=error_data)
+
 
 def get_json(response):
     """Get JSON representation of response."""
     json_field_or_function = getattr(response, 'json', None)
     if callable(json_field_or_function):
-        return response.json()
+        filtered_items = ['project_id', 'tenant_id']
+        for item in filtered_items:
+            if item in response.json()['quota_set']:
+                response = response.json()
+                response['quota_set'].pop(item)
+                return response
+        else:
+            return response.json()
     else:
         return json.loads(response.content)
