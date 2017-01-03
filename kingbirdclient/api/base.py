@@ -50,6 +50,20 @@ class ResourceManager(object):
         resource = self._generate_resource(json_response_key)
         return resource
 
+    def _update(self, url, data):
+        data = json.dumps(data)
+        resp = self.http_client.put(url,data)
+        if resp.status_code != 200:
+            self._raise_api_exception(resp)
+        json_response_key = get_json(resp)
+        result = self._generate_resource(json_response_key)
+        return result
+
+    def _delete(self, url):
+        resp = self.http_client.delete(url)
+        if resp.status_code != 200:
+            self._raise_api_exception(resp)
+
     def _raise_api_exception(self, resp):
         error_data = resp.content
         raise exceptions.APIException(error_code=resp.status_code,
