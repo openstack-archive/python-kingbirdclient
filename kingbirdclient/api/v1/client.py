@@ -19,6 +19,7 @@ import six
 import osprofiler.profiler
 
 from kingbirdclient.api import httpclient
+from kingbirdclient.api.v1 import quota_class_manager as qcm
 from kingbirdclient.api.v1 import quota_manager as qm
 
 _DEFAULT_KINGBIRD_URL = "http://localhost:8118/v1.0"
@@ -76,7 +77,7 @@ class Client(object):
 
         # Create all resource managers
         self.quota_manager = qm.quota_manager(self.http_client)
-
+        self.quota_class_manager = qcm.quota_class_manager(self.http_client)
 
 def authenticate(kingbird_url=None, username=None,
                  api_key=None, project_name=None, auth_url=None,
