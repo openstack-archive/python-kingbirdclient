@@ -21,10 +21,11 @@ class Resource(object):
     # This will be overridden by the actual resource
     resource_name = 'Something'
 
-    def __init__(self, manager, data, values):
+    def __init__(self, manager, data, Limit, Usage=None):
         self.manager = manager
         self._data = data
-        self._values = values
+        self._Limit = Limit
+        self._Usage = Usage
 
 
 class ResourceManager(object):
@@ -59,8 +60,28 @@ class ResourceManager(object):
         result = self._generate_resource(json_response_key)
         return result
 
-    def _delete(self, url):
-        resp = self.http_client.delete(url)
+    def _sync(self, url, data=None):
+        resp = self.http_client.put(url, data)
+        if resp.status_code != 200:
+            self._raise_api_exception(resp)
+
+    def _detail(self, url):
+        resp = self.http_client.get(url)
+        if resp.status_code != 200:
+            self._raise_api_exception(resp)
+        json_response_key = get_json(resp)
+        json_objects = [json_response_key[item] for item in json_response_key]
+        resource = []
+        for json_object in json_objects:
+            data = json_object.get('usage').keys()
+            for values in data:
+                resource.append(self.resource_class(self, values,
+                                json_object['limits'][values],
+                                json_object['usage'][values]))
+        return resource
+
+    def _delete(self, url, data=None):
+        resp = self.http_client.delete(url, data)
         if resp.status_code != 200:
             self._raise_api_exception(resp)
 
