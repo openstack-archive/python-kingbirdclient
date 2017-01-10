@@ -19,6 +19,12 @@ from kingbirdclient.api import base
 class Quota(base.Resource):
     resource_name = 'os-quota-sets'
 
+    def __init__(self, manager, data, Limit, Usage=None):
+        self.manager = manager
+        self._data = data
+        self._Limit = Limit
+        self._Usage = Usage
+
 
 class quota_manager(base.ResourceManager):
     resource_class = Quota
@@ -34,3 +40,33 @@ class quota_manager(base.ResourceManager):
             target_tenant_id = tenant
         url = '/%s/os-quota-sets/%s' % (tenant, target_tenant_id)
         return self._list(url)
+
+    def update_global_limits(self, target_tenant_id, **kwargs):
+        if kwargs:
+            data = dict()
+            data['quota_set'] = {
+                k: int(v) for k, v in kwargs.items() if v is not None}
+        tenant = self.http_client.project_id
+        url = '/%s/os-quota-sets/%s' % (tenant, target_tenant_id)
+        return self._update(url, data)
+
+    def delete_quota(self, target_tenant_id, resources=None):
+        data = dict()
+        if resources:
+            resources = resources.split(',')
+            data["quota_set"] = str(resources)
+        tenant = self.http_client.project_id
+        url = '/%s/os-quota-sets/%s' % (tenant, target_tenant_id)
+        return self._delete(url, data)
+
+    def sync_quota(self, target_tenant_id):
+        tenant = self.http_client.project_id
+        url = '/%s/os-quota-sets/%s/sync' % (tenant, target_tenant_id)
+        return self._sync(url)
+
+    def quota_detail(self, target_tenant_id=None):
+        tenant = self.http_client.project_id
+        if not target_tenant_id:
+            target_tenant_id = tenant
+        url = '/%s/os-quota-sets/%s/detail' % (tenant, target_tenant_id)
+        return self._detail(url)

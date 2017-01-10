@@ -18,6 +18,11 @@ from kingbirdclient.api import base
 class QuotaClass(base.Resource):
     resource_name = 'os-quota-class-sets'
 
+    def __init__(self, manager, data, Limit):
+        self.manager = manager
+        self._data = data
+        self._Limit = Limit
+
 
 class quota_class_manager(base.ResourceManager):
     resource_class = QuotaClass

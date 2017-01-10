@@ -27,7 +27,7 @@ def format(quotas=None):
     if quotas:
         data = (
             quotas._data,
-            quotas._values,
+            quotas._Limit,
         )
 
     else:

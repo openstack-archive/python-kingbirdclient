@@ -26,6 +26,18 @@ QUOTAS_DICT = {
 QUOTAMANAGER = qm.Quota(mock, QUOTAS_DICT['Quota'],
                         QUOTAS_DICT['Limit'])
 
+DETAIL_QUOTA_DICT = {
+    'Quota': 'fake_item',
+    'Usage': '123',
+    'Limit': '121'
+}
+
+DETAIL_QUOTAMANAGER = qm.Quota(mock, DETAIL_QUOTA_DICT['Quota'],
+                               DETAIL_QUOTA_DICT['Usage'],
+                               DETAIL_QUOTA_DICT['Limit'])
+
+FAKE_TENANT = 'fake_tenant123'
+
 
 class TestCLIQuotaManagerV1(base.BaseCommandTest):
 
@@ -44,7 +56,49 @@ class TestCLIQuotaManagerV1(base.BaseCommandTest):
         actual_quota = self.call(quota_cmd.GlobalLimits)
         self.assertEqual([('fake_item', '123')], actual_quota[1])
 
+    def test_global_limits_with_tenant_id(self):
+        self.client.quota_manager.global_limits.return_value = [QUOTAMANAGER]
+        actual_quota = self.call(quota_cmd.GlobalLimits,
+                                 app_args=['--tenant', FAKE_TENANT])
+        self.assertEqual([('fake_item', '123')], actual_quota[1])
+
     def test_negative_global_limits(self):
         self.client.quota_manager.global_limits.return_value = []
         actual_quota = self.call(quota_cmd.GlobalLimits)
         self.assertEqual((('<none>', '<none>'),), actual_quota[1])
+
+    def test_update_global_limits(self):
+        self.client.quota_manager.\
+            update_global_limits.return_value = [QUOTAMANAGER]
+        actual_quota = self.call(quota_cmd.UpdateGlobalLimits,
+                                 app_args=[FAKE_TENANT, '--ram', '51200'])
+        self.assertEqual([('fake_item', '123')], actual_quota[1])
+
+    def test_negative_update_global_limits(self):
+        self.client.quota_manager.update_global_limits.return_value = []
+        actual_quota = self.call(quota_cmd.UpdateGlobalLimits,
+                                 app_args=[FAKE_TENANT, '--ram', '51200'])
+        self.assertEqual((('<none>', '<none>'),), actual_quota[1])
+
+    def test_delete_quota(self):
+        self.call(quota_cmd.DeleteQuota, app_args=[FAKE_TENANT])
+        self.client.quota_manager.delete_quota.\
+            assert_called_once_with(FAKE_TENANT, None)
+
+    def test_sync_quota(self):
+        self.call(quota_cmd.SyncQuota, app_args=[FAKE_TENANT])
+        self.client.quota_manager.sync_quota.\
+            assert_called_once_with(FAKE_TENANT)
+
+    def test_detail_quota_with_tenant_id(self):
+        self.client.quota_manager.\
+            quota_detail.return_value = [DETAIL_QUOTAMANAGER]
+        actual_quota = self.call(quota_cmd.ShowQuotaDetail,
+                                 app_args=['--tenant', FAKE_TENANT])
+        self.assertEqual([('fake_item', '121', '123')], actual_quota[1])
+
+    def test_detail_quota_without_tenant_id(self):
+        self.client.quota_manager.\
+            quota_detail.return_value = [DETAIL_QUOTAMANAGER]
+        actual_quota = self.call(quota_cmd.ShowQuotaDetail)
+        self.assertEqual([('fake_item', '121', '123')], actual_quota[1])
