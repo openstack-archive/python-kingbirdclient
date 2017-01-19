@@ -83,7 +83,7 @@ class TestCLIQuotaManagerV1(base.BaseCommandTest):
     def test_delete_quota(self):
         self.call(quota_cmd.DeleteQuota, app_args=[FAKE_TENANT])
         self.client.quota_manager.delete_quota.\
-            assert_called_once_with(FAKE_TENANT, None)
+            assert_called_once_with(FAKE_TENANT)
 
     def test_sync_quota(self):
         self.call(quota_cmd.SyncQuota, app_args=[FAKE_TENANT])

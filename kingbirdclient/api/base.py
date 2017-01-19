@@ -74,8 +74,8 @@ class ResourceManager(object):
                                 json_object['usage'][values]))
         return resource
 
-    def _delete(self, url, data=None):
-        resp = self.http_client.delete(url, data)
+    def _delete(self, url):
+        resp = self.http_client.delete(url)
         if resp.status_code != 200:
             self._raise_api_exception(resp)
 
