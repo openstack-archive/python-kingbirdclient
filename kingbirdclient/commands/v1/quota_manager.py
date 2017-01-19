@@ -296,28 +296,17 @@ class DeleteQuota(command.Command):
             help='ID of tenant to delete quotas.'
         )
 
-        parser.add_argument(
-            '--resources',
-            help='resources to which quotas have to be deleted.'
-                 '--<cores,ram,etc...> comma seperated values(csv)'
-        )
-
         return parser
 
     def take_action(self, parsed_args):
         kingbird_client = self.app.client_manager.sync_engine
         target_tenant = parsed_args.tenant
-        resources = parsed_args.resources
         try:
             kingbird_client.quota_manager.\
-                delete_quota(target_tenant, resources)
-            if resources:
-                print("Request to delete %s for tenant %s has been accepted." %
-                      (parsed_args.resources, parsed_args.tenant))
-            else:
-                print("Request to delete quotas"
-                      " for tenant %s has been accepted." %
-                      (parsed_args.tenant))
+                delete_quota(target_tenant)
+            print("Request to delete quotas"
+                  " for tenant %s has been accepted." %
+                  (parsed_args.tenant))
         except Exception as e:
             print(e)
             error_msg = "Unable to delete quota for specified resource."
