@@ -122,10 +122,19 @@ def authenticate(kingbird_url=None, username=None,
             endpoint_type=endpoint_type
         )
 
-        if service_type in catalog:
-            service = catalog.get(service_type)
-            kingbird_url = service[0].get(
-                endpoint_type) if service else None
+        # For Keystone version '3'
+        if keystone.version == 'v3':
+            if service_type in catalog:
+                service = catalog.get(service_type)
+                kingbird_url = service[0].get(
+                    'url') if service else None
+
+        # For Keystone version '2.0'
+        if keystone.version == 'v2.0':
+            if service_type in catalog:
+                service = catalog.get(service_type)
+                kingbird_url = service[0].get(
+                    endpoint_type) if service else None
 
     return kingbird_url, token, project_id, user_id
 

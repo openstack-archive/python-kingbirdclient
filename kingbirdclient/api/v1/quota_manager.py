@@ -50,14 +50,10 @@ class quota_manager(base.ResourceManager):
         url = '/%s/os-quota-sets/%s' % (tenant, target_tenant_id)
         return self._update(url, data)
 
-    def delete_quota(self, target_tenant_id, resources=None):
-        data = dict()
-        if resources:
-            resources = resources.split(',')
-            data["quota_set"] = str(resources)
+    def delete_quota(self, target_tenant_id):
         tenant = self.http_client.project_id
         url = '/%s/os-quota-sets/%s' % (tenant, target_tenant_id)
-        return self._delete(url, data)
+        return self._delete(url)
 
     def sync_quota(self, target_tenant_id):
         tenant = self.http_client.project_id
