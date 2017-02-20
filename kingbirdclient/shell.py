@@ -31,6 +31,7 @@ from osc_lib.command import command
 import argparse
 from kingbirdclient.commands.v1 import quota_class_manager as qcm
 from kingbirdclient.commands.v1 import quota_manager as qm
+from kingbirdclient.commands.v1 import sync_manager as sm
 LOG = logging.getLogger(__name__)
 
 
@@ -403,6 +404,9 @@ class KingbirdShell(app.App):
             'quota-class show': qcm.ListQuotaClass,
             'quota-class update': qcm.UpdateQuotaClass,
             'quota-class delete': qcm.DeleteQuotaClass,
+            'sync list': sm.SyncList,
+            'sync show': sm.SyncShow,
+            'sync delete': sm.SyncDelete,
         }
 
 
