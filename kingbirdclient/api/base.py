@@ -74,6 +74,53 @@ class ResourceManager(object):
                                 json_object['usage'][values]))
         return resource
 
+    def resource_sync_create(self, url, data):
+        data = json.dumps(data)
+        resp = self.http_client.post(url, data)
+        if resp.status_code != 200:
+            self._raise_api_exception(resp)
+        json_response_key = get_json(resp)
+        json_object = json_response_key['job_status']
+        resource = []
+        resource.append(self.resource_class(
+                        self, id=json_object['id'],
+                        status=json_object['status'],
+                        created_at=json_object['created_at']))
+        return resource
+
+    def _resource_sync_list(self, url):
+        resp = self.http_client.get(url)
+        if resp.status_code != 200:
+            self._raise_api_exception(resp)
+        json_response_key = get_json(resp)
+        json_objects = json_response_key['job_set']
+        resource = []
+        for json_object in json_objects:
+            resource.append(self.resource_class(
+                            self, id=json_object['id'],
+                            status=json_object['sync_status'],
+                            created_at=json_object['created_at'],
+                            updated_at=json_object['updated_at']))
+        return resource
+
+    def _resource_sync_detail(self, url):
+        resp = self.http_client.get(url)
+        if resp.status_code != 200:
+            self._raise_api_exception(resp)
+        json_response_key = get_json(resp)
+        json_objects = json_response_key['job_set']
+        resource = []
+        for json_object in json_objects:
+            resource.append(self.resource_class(
+                            self, resource_name=json_object['resource'],
+                            source_region=json_object['source_region'],
+                            target_region=json_object['target_region'],
+                            resource_type=json_object['resource_type'],
+                            status=json_object['sync_status'],
+                            created_at=json_object['created_at'],
+                            updated_at=json_object['updated_at']))
+        return resource
+
     def _delete(self, url):
         resp = self.http_client.delete(url)
         if resp.status_code != 200:
