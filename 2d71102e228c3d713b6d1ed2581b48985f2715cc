@@ -1,0 +1,8 @@
+Code-Review+2: Chaoyi Huang <joehuang@huawei.com>
+Workflow+1: Chaoyi Huang <joehuang@huawei.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 10 Mar 2017 03:59:54 +0000
+Reviewed-on: https://review.openstack.org/431901
+Project: openstack/python-kingbirdclient
+Branch: refs/heads/master
