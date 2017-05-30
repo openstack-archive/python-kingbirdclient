@@ -24,7 +24,8 @@ from kingbirdclient.tests import base
 TIME_NOW = timeutils.utcnow().isoformat()
 ID = uuidutils.generate_uuid()
 ID_1 = uuidutils.generate_uuid()
-FAKE_STATUS = 'IN_PROGRESS'
+FAKE_STATUS = 'SUCCESS'
+ACTIVE_FAKE_STATUS = 'IN_PROGRESS'
 FAKE_RESOURCE = 'fake_item'
 FAKE_SOURCE_REGION = 'fake_region_1'
 FAKE_TARGET_REGION = 'fake_region_2'
@@ -37,10 +38,22 @@ RESOURCE_DICT = {
     'UPDATED_AT': TIME_NOW
 }
 
+ACTIVE_RESOURCE_DICT = {
+    'ID': ID,
+    'STATUS': ACTIVE_FAKE_STATUS,
+    'CREATED_AT': TIME_NOW,
+    'UPDATED_AT': TIME_NOW
+}
+
 SYNCMANAGER = sm.Resource(mock, id=RESOURCE_DICT['ID'],
                           status=RESOURCE_DICT['STATUS'],
                           created_at=RESOURCE_DICT['CREATED_AT'],
                           updated_at=RESOURCE_DICT['UPDATED_AT'])
+
+ACTIVE_SYNCMANAGER = sm.Resource(mock, id=ACTIVE_RESOURCE_DICT['ID'],
+                                 status=ACTIVE_RESOURCE_DICT['STATUS'],
+                                 created_at=ACTIVE_RESOURCE_DICT['CREATED_AT'],
+                                 updated_at=ACTIVE_RESOURCE_DICT['UPDATED_AT'])
 
 DETAIL_RESOURCE_DICT = {
     'RESOURCE': FAKE_RESOURCE,
@@ -79,6 +92,19 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
         actual_call = self.call(sync_cmd.SyncList)
         self.assertEqual((('<none>', '<none>', '<none>', '<none>'),),
                          actual_call[1])
+
+    def test_active_sync_jobs_list(self):
+        self.client.sync_manager.list_sync_jobs.\
+            return_value = [ACTIVE_SYNCMANAGER]
+        actual_call = self.call(sync_cmd.SyncList, app_args=['--active'])
+        self.assertEqual([(ID, ACTIVE_FAKE_STATUS, TIME_NOW, TIME_NOW)],
+                         actual_call[1])
+
+    def test_active_sync_jobs_negative(self):
+        self.client.sync_manager.list_sync_jobs.\
+            return_value = [ACTIVE_SYNCMANAGER]
+        self.assertRaises(SystemExit, self.call,
+                          sync_cmd.SyncList, app_args=['--fake'])
 
     def test_delete_sync_job_with_job_id(self):
         self.call(sync_cmd.SyncDelete, app_args=[ID])

@@ -43,9 +43,11 @@ class sync_manager(base.ResourceManager):
         url = '/%s/os-sync/' % tenant
         return self.resource_sync_create(url, data)
 
-    def list_sync_jobs(self):
+    def list_sync_jobs(self, action=None):
         tenant = self.http_client.project_id
         url = '/%s/os-sync/' % tenant
+        if action:
+            url = '/%s/os-sync/%s' % (tenant, action)
         return self._resource_sync_list(url)
 
     def sync_job_detail(self, job_id):

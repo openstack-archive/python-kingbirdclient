@@ -148,9 +148,24 @@ class SyncList(base.KingbirdLister):
     def _get_format_function(self):
         return format
 
+    def get_parser(self, parsed_args):
+        parser = super(SyncList, self).get_parser(parsed_args)
+
+        parser.add_argument(
+            '--active',
+            action='store_true',
+            help='View the list of active jobs.'
+        )
+
+        return parser
+
     def _get_resources(self, parsed_args):
+        active = parsed_args.active
+        action = None
         kingbird_client = self.app.client_manager.sync_engine
-        return kingbird_client.sync_manager.list_sync_jobs()
+        if active:
+            action = 'active'
+        return kingbird_client.sync_manager.list_sync_jobs(action)
 
 
 class SyncShow(base.KingbirdLister):
