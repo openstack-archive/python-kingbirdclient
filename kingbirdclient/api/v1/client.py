@@ -14,26 +14,32 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import six
-
-import osprofiler.profiler
+import keystoneauth1.identity.generic as auth_plugin
+from keystoneauth1 import session as ks_session
 
 from kingbirdclient.api import httpclient
 from kingbirdclient.api.v1 import quota_class_manager as qcm
 from kingbirdclient.api.v1 import quota_manager as qm
 from kingbirdclient.api.v1 import sync_manager as sm
 
+import osprofiler.profiler
+
+import six
+
+
 _DEFAULT_KINGBIRD_URL = "http://localhost:8118/v1.0"
 
 
 class Client(object):
+    """Class where the communication from KB to Keystone happens."""
+
     def __init__(self, kingbird_url=None, username=None, api_key=None,
                  project_name=None, auth_url=None, project_id=None,
                  endpoint_type='publicURL', service_type='synchronization',
                  auth_token=None, user_id=None, cacert=None, insecure=False,
                  profile=None, auth_type='keystone', client_id=None,
                  client_secret=None):
-
+        """Kingbird communicates with Keystone to fetch necessary values."""
         if kingbird_url and not isinstance(kingbird_url, six.string_types):
             raise RuntimeError('Kingbird url should be a string.')
 
@@ -87,6 +93,7 @@ def authenticate(kingbird_url=None, username=None,
                  project_id=None, endpoint_type='publicURL',
                  service_type='synchronization', auth_token=None, user_id=None,
                  cacert=None, insecure=False):
+    """Get token, project_id, user_id and Endpoint."""
     if project_name and project_id:
         raise RuntimeError(
             'Only project name or project id should be set'
@@ -97,47 +104,35 @@ def authenticate(kingbird_url=None, username=None,
             'Only user name or user id should be set'
         )
 
-    keystone_client = _get_keystone_client(auth_url)
+    if auth_token:
+        auth = auth_plugin.Token(
+            auth_url=auth_url,
+            token=auth_token,
+            project_id=project_id,
+            project_name=project_name)
 
-    keystone = keystone_client.Client(
-        username=username,
-        user_id=user_id,
-        password=api_key,
-        token=auth_token,
-        tenant_id=project_id,
-        tenant_name=project_name,
-        auth_url=auth_url,
-        endpoint=auth_url,
-        cacert=cacert,
-        insecure=insecure
-    )
+    elif api_key and (username or user_id):
+        auth = auth_plugin.Password(
+            auth_url=auth_url,
+            username=username,
+            user_id=user_id,
+            password=api_key,
+            project_id=project_id,
+            project_name=project_name)
 
-    keystone.authenticate()
+    else:
+        raise RuntimeError('You must either provide a valid token or'
+                           'a password (api_key) and a user.')
+    if auth:
+        session = ks_session.Session(auth=auth)
 
-    token = keystone.auth_token
-    user_id = keystone.user_id
-    project_id = keystone.project_id
-
-    if not kingbird_url:
-        catalog = keystone.service_catalog.get_endpoints(
-            service_type=service_type,
-            endpoint_type=endpoint_type
-        )
-
-        # For Keystone version 'V2.0' and other.
-        serv_endpoint = endpoint_type if keystone.version == 'v2.0' else 'url'
-        if service_type in catalog:
-            service = catalog.get(service_type)
-            kingbird_url = service[0].get(
-                serv_endpoint) if service else None
+    if session:
+        token = session.get_token()
+        project_id = session.get_project_id()
+        user_id = session.get_user_id()
+        if not kingbird_url:
+            kingbird_url = session.get_endpoint(
+                service_type=service_type,
+                endpoint_type=endpoint_type)
 
     return kingbird_url, token, project_id, user_id
-
-
-def _get_keystone_client(auth_url):
-    if "v2.0" in auth_url:
-        from keystoneclient.v2_0 import client
-    else:
-        from keystoneclient.v3 import client
-
-    return client

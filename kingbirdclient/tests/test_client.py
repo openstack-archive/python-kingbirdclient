@@ -33,85 +33,77 @@ PROFILER_HMAC_KEY = 'SECRET_HMAC_KEY'
 
 
 class BaseClientTests(testtools.TestCase):
-    @mock.patch('keystoneclient.v3.client.Client')
+    @mock.patch('keystoneauth1.session.Session')
     @mock.patch('kingbirdclient.api.httpclient.HTTPClient')
-    def test_kingbird_url_default(self, mock, keystone_client_mock):
-        keystone_client_instance = keystone_client_mock.return_value
-        keystone_client_instance.auth_token = str(uuid.uuid4())
-        keystone_client_instance.project_id = str(uuid.uuid4())
-        keystone_client_instance.user_id = str(uuid.uuid4())
+    def test_kingbird_url_default(self, mock, mock_keystone_auth_session):
+        keystone_session_instance = mock_keystone_auth_session.return_value
+        token = keystone_session_instance.get_token.return_value = \
+            str(uuid.uuid4())
+        project_id = keystone_session_instance.get_project_id.return_value = \
+            str(uuid.uuid4())
+        user_id = keystone_session_instance.get_user_id.return_value = \
+            str(uuid.uuid4())
+        keystone_session_instance.get_endpoint.return_value = \
+            KINGBIRD_HTTP_URL
 
         expected_args = (
-            KINGBIRD_HTTP_URL,
-            keystone_client_instance.auth_token,
-            keystone_client_instance.project_id,
-            keystone_client_instance.user_id
-        )
+            KINGBIRD_HTTP_URL, token, project_id, user_id)
 
         expected_kwargs = {
             'cacert': None,
             'insecure': False
         }
 
-        client.client(
-            username='kingbird',
-            project_name='kingbird',
-            auth_url=AUTH_HTTP_URL
-        )
-
+        client.client(username='kingbird', project_name='kingbird',
+                      auth_url=AUTH_HTTP_URL, api_key='password')
         self.assertTrue(mock.called)
         self.assertEqual(mock.call_args[0], expected_args)
         self.assertDictEqual(mock.call_args[1], expected_kwargs)
 
-    @mock.patch('keystoneclient.v3.client.Client')
+    @mock.patch('keystoneauth1.session.Session')
     @mock.patch('kingbirdclient.api.httpclient.HTTPClient')
-    def test_kingbird_url_https_insecure(self, mock, keystone_client_mock):
-        keystone_client_instance = keystone_client_mock.return_value
-        keystone_client_instance.auth_token = str(uuid.uuid4())
-        keystone_client_instance.project_id = str(uuid.uuid4())
-        keystone_client_instance.user_id = str(uuid.uuid4())
+    def test_kingbird_url_https_insecure(self, mock,
+                                         mock_keystone_auth_session):
+        keystone_session_instance = mock_keystone_auth_session.return_value
+        token = keystone_session_instance.get_token.return_value = \
+            str(uuid.uuid4())
+        project_id = keystone_session_instance.get_project_id.return_value = \
+            str(uuid.uuid4())
+        user_id = keystone_session_instance.get_user_id.return_value = \
+            str(uuid.uuid4())
+        keystone_session_instance.get_endpoint.return_value = \
+            KINGBIRD_HTTP_URL
 
-        expected_args = (
-            KINGBIRD_HTTPS_URL,
-            keystone_client_instance.auth_token,
-            keystone_client_instance.project_id,
-            keystone_client_instance.user_id
-        )
+        expected_args = (KINGBIRD_HTTPS_URL, token, project_id, user_id)
 
         expected_kwargs = {
             'cacert': None,
             'insecure': True
         }
 
-        client.client(
-            kingbird_url=KINGBIRD_HTTPS_URL,
-            username='kingbird',
-            project_name='kingbird',
-            auth_url=AUTH_HTTP_URL,
-            cacert=None,
-            insecure=True
-        )
+        client.client(kingbird_url=KINGBIRD_HTTPS_URL, username='kingbird',
+                      project_name='kingbird', auth_url=AUTH_HTTP_URL,
+                      api_key='password', cacert=None, insecure=True)
 
         self.assertTrue(mock.called)
         self.assertEqual(mock.call_args[0], expected_args)
         self.assertDictEqual(mock.call_args[1], expected_kwargs)
 
-    @mock.patch('keystoneclient.v3.client.Client')
+    @mock.patch('keystoneauth1.session.Session')
     @mock.patch('kingbirdclient.api.httpclient.HTTPClient')
-    def test_kingbird_url_https_secure(self, mock, keystone_client_mock):
+    def test_kingbird_url_https_secure(self, mock, mock_keystone_auth_session):
         fd, path = tempfile.mkstemp(suffix='.pem')
+        keystone_session_instance = mock_keystone_auth_session.return_value
+        token = keystone_session_instance.get_token.return_value = \
+            str(uuid.uuid4())
+        project_id = keystone_session_instance.get_project_id.return_value = \
+            str(uuid.uuid4())
+        user_id = keystone_session_instance.get_user_id.return_value = \
+            str(uuid.uuid4())
+        keystone_session_instance.get_endpoint.return_value = \
+            KINGBIRD_HTTPS_URL
 
-        keystone_client_instance = keystone_client_mock.return_value
-        keystone_client_instance.auth_token = str(uuid.uuid4())
-        keystone_client_instance.project_id = str(uuid.uuid4())
-        keystone_client_instance.user_id = str(uuid.uuid4())
-
-        expected_args = (
-            KINGBIRD_HTTPS_URL,
-            keystone_client_instance.auth_token,
-            keystone_client_instance.project_id,
-            keystone_client_instance.user_id
-        )
+        expected_args = (KINGBIRD_HTTPS_URL, token, project_id, user_id)
 
         expected_kwargs = {
             'cacert': path,
@@ -124,6 +116,7 @@ class BaseClientTests(testtools.TestCase):
                 username='kingbird',
                 project_name='kingbird',
                 auth_url=AUTH_HTTP_URL,
+                api_key='password',
                 cacert=path,
                 insecure=False
             )
@@ -135,40 +128,32 @@ class BaseClientTests(testtools.TestCase):
         self.assertEqual(mock.call_args[0], expected_args)
         self.assertDictEqual(mock.call_args[1], expected_kwargs)
 
-    @mock.patch('keystoneclient.v3.client.Client')
-    def test_kingbird_url_https_bad_cacert(self, keystone_client_mock):
-        keystone_client_instance = keystone_client_mock.return_value
-        keystone_client_instance.auth_token = str(uuid.uuid4())
-        keystone_client_instance.project_id = str(uuid.uuid4())
-        keystone_client_instance.user_id = str(uuid.uuid4())
-
+    @mock.patch('keystoneauth1.session.Session')
+    def test_kingbird_url_https_bad_cacert(self, mock_keystone_auth_session):
         self.assertRaises(
             ValueError,
             client.client,
             kingbird_url=KINGBIRD_HTTPS_URL,
             username='kingbird',
             project_name='kingbird',
+            api_key='password',
             auth_url=AUTH_HTTP_URL,
             cacert='/path/to/foobar',
             insecure=False
         )
 
     @mock.patch('logging.Logger.warning')
-    @mock.patch('keystoneclient.v3.client.Client')
-    def test_kingbird_url_https_bad_insecure(self, keystone_client_mock,
+    @mock.patch('keystoneauth1.session.Session')
+    def test_kingbird_url_https_bad_insecure(self, mock_keystone_auth_session,
                                              log_warning_mock):
         fd, path = tempfile.mkstemp(suffix='.pem')
-
-        keystone_client_instance = keystone_client_mock.return_value
-        keystone_client_instance.auth_token = str(uuid.uuid4())
-        keystone_client_instance.project_id = str(uuid.uuid4())
-        keystone_client_instance.user_id = str(uuid.uuid4())
 
         try:
             client.client(
                 kingbird_url=KINGBIRD_HTTPS_URL,
                 username='kingbird',
                 project_name='kingbird',
+                api_key='password',
                 auth_url=AUTH_HTTP_URL,
                 cacert=path,
                 insecure=True
@@ -179,20 +164,20 @@ class BaseClientTests(testtools.TestCase):
 
         self.assertTrue(log_warning_mock.called)
 
-    @mock.patch('keystoneclient.v3.client.Client')
+    @mock.patch('keystoneauth1.session.Session')
     @mock.patch('kingbirdclient.api.httpclient.HTTPClient')
-    def test_kingbird_profile_enabled(self, mock, keystone_client_mock):
-        keystone_client_instance = keystone_client_mock.return_value
-        keystone_client_instance.auth_token = str(uuid.uuid4())
-        keystone_client_instance.project_id = str(uuid.uuid4())
-        keystone_client_instance.user_id = str(uuid.uuid4())
+    def test_kingbird_profile_enabled(self, mock, mock_keystone_auth_session):
+        keystone_session_instance = mock_keystone_auth_session.return_value
+        token = keystone_session_instance.get_token.return_value = \
+            str(uuid.uuid4())
+        project_id = keystone_session_instance.get_project_id.return_value = \
+            str(uuid.uuid4())
+        user_id = keystone_session_instance.get_user_id.return_value = \
+            str(uuid.uuid4())
+        keystone_session_instance.get_endpoint.return_value = \
+            KINGBIRD_HTTP_URL
 
-        expected_args = (
-            KINGBIRD_HTTP_URL,
-            keystone_client_instance.auth_token,
-            keystone_client_instance.project_id,
-            keystone_client_instance.user_id
-        )
+        expected_args = (KINGBIRD_HTTP_URL, token, project_id, user_id)
 
         expected_kwargs = {
             'cacert': None,
@@ -203,6 +188,7 @@ class BaseClientTests(testtools.TestCase):
             username='kingbird',
             project_name='kingbird',
             auth_url=AUTH_HTTP_URL,
+            api_key='password',
             profile=PROFILER_HMAC_KEY
         )
 
@@ -213,3 +199,23 @@ class BaseClientTests(testtools.TestCase):
         profiler = osprofiler.profiler.get()
 
         self.assertEqual(profiler.hmac_key, PROFILER_HMAC_KEY)
+
+    def test_no_api_key(self):
+        self.assertRaises(RuntimeError, client.client,
+                          kingbird_url=KINGBIRD_HTTP_URL,
+                          username='kingbird', project_name='kingbird',
+                          auth_url=AUTH_HTTP_URL)
+
+    def test_project_name_and_project_id(self):
+        self.assertRaises(RuntimeError, client.client,
+                          kingbird_url=KINGBIRD_HTTP_URL,
+                          username='kingbird', project_name='kingbird',
+                          project_id=str(uuid.uuid4()),
+                          auth_url=AUTH_HTTP_URL)
+
+    def test_user_name_and_user_id(self):
+        self.assertRaises(RuntimeError, client.client,
+                          kingbird_url=KINGBIRD_HTTP_URL,
+                          username='kingbird', project_name='kingbird',
+                          user_id=str(uuid.uuid4()),
+                          auth_url=AUTH_HTTP_URL)
