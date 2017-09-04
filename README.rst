@@ -40,6 +40,9 @@ or
 Running Kingbird client
 -----------------------
 
+If Kingbird authentication is enabled, provide the information about OpenStack
+auth to environment variables. Type:
+
 $ export OS_REGION_NAME=RegionOne
 $ export OS_USER_DOMAIN_ID=default
 $ export OS_PROJECT_NAME=<project_name>
