@@ -40,14 +40,20 @@ or
 Running Kingbird client
 -----------------------
 
+If Kingbird authentication is enabled, provide the information about OpenStack
+auth to environment variables. Type:
+
+$ export OS_PROJECT_DOMAIN_ID=default
 $ export OS_REGION_NAME=RegionOne
 $ export OS_USER_DOMAIN_ID=default
 $ export OS_PROJECT_NAME=<project_name>
 $ export OS_IDENTITY_API_VERSION=<identity_version>
 $ export OS_PASSWORD=<password>
-$ export OS_AUTH_URL=http://<Keystone_host>:5000/<v3(or)v2.0>
+$ export OS_AUTH_TYPE=password
+$ export OS_AUTH_URL=http://<Keystone_host>/identity
 $ export OS_USERNAME=<user_name>
 $ export OS_TENANT_NAME=<tenant_name>
+$ export OS_VOLUME_API_VERSION=<volume_version>
 
 To make sure Kingbird client works, type:
 

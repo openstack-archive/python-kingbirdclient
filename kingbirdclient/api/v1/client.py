@@ -38,12 +38,12 @@ class Client(object):
                  endpoint_type='publicURL', service_type='synchronization',
                  auth_token=None, user_id=None, cacert=None, insecure=False,
                  profile=None, auth_type='keystone', client_id=None,
-                 client_secret=None):
+                 client_secret=None, session=None):
         """Kingbird communicates with Keystone to fetch necessary values."""
         if kingbird_url and not isinstance(kingbird_url, six.string_types):
             raise RuntimeError('Kingbird url should be a string.')
 
-        if auth_url:
+        if auth_url or session:
             if auth_type == 'keystone':
                 (kingbird_url, auth_token, project_id, user_id) = (
                     authenticate(
@@ -57,6 +57,7 @@ class Client(object):
                         service_type,
                         auth_token,
                         user_id,
+                        session,
                         cacert,
                         insecure
                     )
@@ -92,7 +93,7 @@ def authenticate(kingbird_url=None, username=None,
                  api_key=None, project_name=None, auth_url=None,
                  project_id=None, endpoint_type='publicURL',
                  service_type='synchronization', auth_token=None, user_id=None,
-                 cacert=None, insecure=False):
+                 session=None, cacert=None, insecure=False):
     """Get token, project_id, user_id and Endpoint."""
     if project_name and project_id:
         raise RuntimeError(
@@ -104,27 +105,28 @@ def authenticate(kingbird_url=None, username=None,
             'Only user name or user id should be set'
         )
 
-    if auth_token:
-        auth = auth_plugin.Token(
-            auth_url=auth_url,
-            token=auth_token,
-            project_id=project_id,
-            project_name=project_name)
+    if session is None:
+        if auth_token:
+            auth = auth_plugin.Token(
+                auth_url=auth_url,
+                token=auth_token,
+                project_id=project_id,
+                project_name=project_name)
 
-    elif api_key and (username or user_id):
-        auth = auth_plugin.Password(
-            auth_url=auth_url,
-            username=username,
-            user_id=user_id,
-            password=api_key,
-            project_id=project_id,
-            project_name=project_name)
+        elif api_key and (username or user_id):
+            auth = auth_plugin.Password(
+                auth_url=auth_url,
+                username=username,
+                user_id=user_id,
+                password=api_key,
+                project_id=project_id,
+                project_name=project_name)
 
-    else:
-        raise RuntimeError('You must either provide a valid token or'
-                           'a password (api_key) and a user.')
-    if auth:
-        session = ks_session.Session(auth=auth)
+        else:
+            raise RuntimeError('You must either provide a valid token or'
+                               'a password (api_key) and a user.')
+        if auth:
+            session = ks_session.Session(auth=auth)
 
     if session:
         token = session.get_token()
