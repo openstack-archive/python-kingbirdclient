@@ -1,0 +1,8 @@
+Code-Review+2: Jyothi Saroja <jsaroja66@gmail.com>
+Workflow+1: Goutham Pratapa <pratapagoutham@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Mon, 11 Sep 2017 12:27:59 +0000
+Reviewed-on: https://review.openstack.org/502438
+Project: openstack/python-kingbirdclient
+Branch: refs/heads/master
