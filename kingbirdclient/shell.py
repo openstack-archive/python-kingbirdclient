@@ -247,16 +247,36 @@ class KingbirdShell(app.App):
             '--os-tenant-id',
             action='store',
             dest='tenant_id',
-            default=c.env('OS_TENANT_ID'),
+            default=c.env('OS_TENANT_ID', 'OS_PROJECT_ID'),
             help='Authentication tenant identifier (Env: OS_TENANT_ID)'
+        )
+
+        parser.add_argument(
+            '--os-project-id',
+            action='store',
+            dest='project_id',
+            default=c.env('OS_TENANT_ID', 'OS_PROJECT_ID'),
+            help='Authentication project identifier (Env: OS_TENANT_ID'
+                 ' or OS_PROJECT_ID), will use tenant_id if both tenant_id'
+                 ' and project_id are set'
         )
 
         parser.add_argument(
             '--os-tenant-name',
             action='store',
             dest='tenant_name',
-            default=c.env('OS_TENANT_NAME', 'Default'),
+            default=c.env('OS_TENANT_NAME', 'OS_PROJECT_NAME'),
             help='Authentication tenant name (Env: OS_TENANT_NAME)'
+        )
+
+        parser.add_argument(
+            '--os-project-name',
+            action='store',
+            dest='project_name',
+            default=c.env('OS_TENANT_NAME', 'OS_PROJECT_NAME'),
+            help='Authentication project name (Env: OS_TENANT_NAME'
+                 ' or OS_PROJECT_NAME), will use tenant_name if both'
+                 ' tenant_name and project_name are set'
         )
 
         parser.add_argument(
@@ -265,6 +285,42 @@ class KingbirdShell(app.App):
             dest='token',
             default=c.env('OS_AUTH_TOKEN'),
             help='Authentication token (Env: OS_AUTH_TOKEN)'
+        )
+
+        parser.add_argument(
+            '--os-project-domain-name',
+            action='store',
+            dest='project_domain_name',
+            default=c.env('OS_PROJECT_DOMAIN_NAME'),
+            help='Authentication project domain name or ID'
+                 ' (Env: OS_PROJECT_DOMAIN_NAME)'
+        )
+
+        parser.add_argument(
+            '--os-project-domain-id',
+            action='store',
+            dest='project_domain_id',
+            default=c.env('OS_PROJECT_DOMAIN_ID'),
+            help='Authentication project domain ID'
+                 ' (Env: OS_PROJECT_DOMAIN_ID)'
+        )
+
+        parser.add_argument(
+            '--os-user-domain-name',
+            action='store',
+            dest='user_domain_name',
+            default=c.env('OS_USER_DOMAIN_NAME'),
+            help='Authentication user domain name'
+                 ' (Env: OS_USER_DOMAIN_NAME)'
+        )
+
+        parser.add_argument(
+            '--os-user-domain-id',
+            action='store',
+            dest='user_domain_id',
+            default=c.env('OS_USER_DOMAIN_ID'),
+            help='Authentication user domain name'
+                 ' (Env: OS_USER_DOMAIN_ID)'
         )
 
         parser.add_argument(
@@ -341,11 +397,18 @@ class KingbirdShell(app.App):
                      "via --os-password env[OS_PASSWORD]")
                 )
 
+        kwargs = {
+            'user_domain_name': self.options.user_domain_name,
+            'user_domain_id': self.options.user_domain_id,
+            'project_domain_name': self.options.project_domain_name,
+            'project_domain_id': self.options.project_domain_id
+        }
+
         self.client = client.client(
             kingbird_url=self.options.kingbird_url,
             username=self.options.username,
             api_key=self.options.password,
-            project_name=self.options.tenant_name,
+            project_name=self.options.tenant_name or self.options.project_name,
             auth_url=self.options.auth_url,
             project_id=self.options.tenant_id,
             endpoint_type=self.options.endpoint_type,
@@ -353,7 +416,8 @@ class KingbirdShell(app.App):
             auth_token=self.options.token,
             cacert=self.options.cacert,
             insecure=self.options.insecure,
-            profile=self.options.profile
+            profile=self.options.profile,
+            **kwargs
         )
 
         if not self.options.auth_url and not skip_auth:

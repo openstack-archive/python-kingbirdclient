@@ -30,6 +30,10 @@ AUTH_HTTPS_URL = AUTH_HTTP_URL.replace('http', 'https')
 KINGBIRD_HTTP_URL = 'http://localhost:8118/v1.0'
 KINGBIRD_HTTPS_URL = KINGBIRD_HTTP_URL.replace('http', 'https')
 PROFILER_HMAC_KEY = 'SECRET_HMAC_KEY'
+FAKE_KWARGS = {'user_domain_name': 'fake_user_domain_name',
+               'user_domain_id': 'fake_user_domain_id',
+               'project_domain_name': 'fake_project_domain_name',
+               'project_domain_id': 'fake_project_domain_id'}
 
 
 class BaseClientTests(testtools.TestCase):
@@ -55,7 +59,8 @@ class BaseClientTests(testtools.TestCase):
         }
 
         client.client(username='kingbird', project_name='kingbird',
-                      auth_url=AUTH_HTTP_URL, api_key='password')
+                      auth_url=AUTH_HTTP_URL, api_key='password',
+                      **FAKE_KWARGS)
         self.assertTrue(mock.called)
         self.assertEqual(mock.call_args[0], expected_args)
         self.assertDictEqual(mock.call_args[1], expected_kwargs)
@@ -83,7 +88,8 @@ class BaseClientTests(testtools.TestCase):
 
         client.client(kingbird_url=KINGBIRD_HTTPS_URL, username='kingbird',
                       project_name='kingbird', auth_url=AUTH_HTTP_URL,
-                      api_key='password', cacert=None, insecure=True)
+                      api_key='password', cacert=None, insecure=True,
+                      **FAKE_KWARGS)
 
         self.assertTrue(mock.called)
         self.assertEqual(mock.call_args[0], expected_args)
@@ -118,8 +124,7 @@ class BaseClientTests(testtools.TestCase):
                 auth_url=AUTH_HTTP_URL,
                 api_key='password',
                 cacert=path,
-                insecure=False
-            )
+                insecure=False, **FAKE_KWARGS)
         finally:
             os.close(fd)
             os.unlink(path)
@@ -139,8 +144,7 @@ class BaseClientTests(testtools.TestCase):
             api_key='password',
             auth_url=AUTH_HTTP_URL,
             cacert='/path/to/foobar',
-            insecure=False
-        )
+            insecure=False, **FAKE_KWARGS)
 
     @mock.patch('logging.Logger.warning')
     @mock.patch('keystoneauth1.session.Session')
@@ -156,8 +160,8 @@ class BaseClientTests(testtools.TestCase):
                 api_key='password',
                 auth_url=AUTH_HTTP_URL,
                 cacert=path,
-                insecure=True
-            )
+                insecure=True,
+                **FAKE_KWARGS)
         finally:
             os.close(fd)
             os.unlink(path)
@@ -189,8 +193,8 @@ class BaseClientTests(testtools.TestCase):
             project_name='kingbird',
             auth_url=AUTH_HTTP_URL,
             api_key='password',
-            profile=PROFILER_HMAC_KEY
-        )
+            profile=PROFILER_HMAC_KEY,
+            **FAKE_KWARGS)
 
         self.assertTrue(mock.called)
         self.assertEqual(mock.call_args[0], expected_args)
@@ -204,18 +208,18 @@ class BaseClientTests(testtools.TestCase):
         self.assertRaises(RuntimeError, client.client,
                           kingbird_url=KINGBIRD_HTTP_URL,
                           username='kingbird', project_name='kingbird',
-                          auth_url=AUTH_HTTP_URL)
+                          auth_url=AUTH_HTTP_URL, **FAKE_KWARGS)
 
     def test_project_name_and_project_id(self):
         self.assertRaises(RuntimeError, client.client,
                           kingbird_url=KINGBIRD_HTTP_URL,
                           username='kingbird', project_name='kingbird',
                           project_id=str(uuid.uuid4()),
-                          auth_url=AUTH_HTTP_URL)
+                          auth_url=AUTH_HTTP_URL, **FAKE_KWARGS)
 
     def test_user_name_and_user_id(self):
         self.assertRaises(RuntimeError, client.client,
                           kingbird_url=KINGBIRD_HTTP_URL,
                           username='kingbird', project_name='kingbird',
                           user_id=str(uuid.uuid4()),
-                          auth_url=AUTH_HTTP_URL)
+                          auth_url=AUTH_HTTP_URL, **FAKE_KWARGS)

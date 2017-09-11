@@ -38,7 +38,7 @@ class Client(object):
                  endpoint_type='publicURL', service_type='synchronization',
                  auth_token=None, user_id=None, cacert=None, insecure=False,
                  profile=None, auth_type='keystone', client_id=None,
-                 client_secret=None, session=None):
+                 client_secret=None, session=None, **kwargs):
         """Kingbird communicates with Keystone to fetch necessary values."""
         if kingbird_url and not isinstance(kingbird_url, six.string_types):
             raise RuntimeError('Kingbird url should be a string.')
@@ -59,7 +59,8 @@ class Client(object):
                         user_id,
                         session,
                         cacert,
-                        insecure
+                        insecure,
+                        **kwargs
                     )
                 )
             else:
@@ -93,7 +94,7 @@ def authenticate(kingbird_url=None, username=None,
                  api_key=None, project_name=None, auth_url=None,
                  project_id=None, endpoint_type='publicURL',
                  service_type='synchronization', auth_token=None, user_id=None,
-                 session=None, cacert=None, insecure=False):
+                 session=None, cacert=None, insecure=False, **kwargs):
     """Get token, project_id, user_id and Endpoint."""
     if project_name and project_id:
         raise RuntimeError(
@@ -104,6 +105,10 @@ def authenticate(kingbird_url=None, username=None,
         raise RuntimeError(
             'Only user name or user id should be set'
         )
+    user_domain_name = kwargs['user_domain_name']
+    user_domain_id = kwargs['user_domain_id']
+    project_domain_name = kwargs['project_domain_name']
+    project_domain_id = kwargs['project_domain_id']
 
     if session is None:
         if auth_token:
@@ -111,7 +116,11 @@ def authenticate(kingbird_url=None, username=None,
                 auth_url=auth_url,
                 token=auth_token,
                 project_id=project_id,
-                project_name=project_name)
+                project_name=project_name,
+                project_domain_name=project_domain_name,
+                project_domain_id=project_domain_id,
+                cacert=cacert,
+                insecure=insecure)
 
         elif api_key and (username or user_id):
             auth = auth_plugin.Password(
@@ -120,7 +129,11 @@ def authenticate(kingbird_url=None, username=None,
                 user_id=user_id,
                 password=api_key,
                 project_id=project_id,
-                project_name=project_name)
+                project_name=project_name,
+                user_domain_name=user_domain_name,
+                user_domain_id=user_domain_id,
+                project_domain_name=project_domain_name,
+                project_domain_id=project_domain_id)
 
         else:
             raise RuntimeError('You must either provide a valid token or'

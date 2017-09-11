@@ -145,3 +145,45 @@ class TestShell(base.BaseShellTests):
         self.assertTrue(mock.called)
         params = mock.call_args
         self.assertEqual(None, params[1]['profile'])
+
+    @mock.patch('kingbirdclient.api.client.client')
+    def test_kingbird_project_name(self, mock):
+        self.shell('--os-project-name default quota defaults')
+        self.assertTrue(mock.called)
+        params = mock.call_args
+        self.assertEqual('default', params[1]['project_name'])
+
+    @mock.patch('kingbirdclient.api.client.client')
+    def test_kingbird_tenant_name(self, mock):
+        self.shell('--os-tenant-name default quota defaults')
+        self.assertTrue(mock.called)
+        params = mock.call_args
+        self.assertEqual('default', params[1]['project_name'])
+
+    @mock.patch('kingbirdclient.api.client.client')
+    def test_kingbird_project_domain_name(self, mock):
+        self.shell('--os-project-domain-name default quota defaults')
+        self.assertTrue(mock.called)
+        params = mock.call_args
+        self.assertEqual('default', params[1]['project_domain_name'])
+
+    @mock.patch('kingbirdclient.api.client.client')
+    def test_kingbird_project_domain_id(self, mock):
+        self.shell('--os-project-domain-id default quota defaults')
+        self.assertTrue(mock.called)
+        params = mock.call_args
+        self.assertEqual('default', params[1]['project_domain_id'])
+
+    @mock.patch('kingbirdclient.api.client.client')
+    def test_kingbird_user_domain_name(self, mock):
+        self.shell('--os-user-domain-name default quota defaults')
+        self.assertTrue(mock.called)
+        params = mock.call_args
+        self.assertEqual('default', params[1]['user_domain_name'])
+
+    @mock.patch('kingbirdclient.api.client.client')
+    def test_kingbird_user_domain_id(self, mock):
+        self.shell('--os-user-domain-id default quota defaults')
+        self.assertTrue(mock.called)
+        params = mock.call_args
+        self.assertEqual('default', params[1]['user_domain_id'])
