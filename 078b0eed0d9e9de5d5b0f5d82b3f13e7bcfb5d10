@@ -1,0 +1,8 @@
+Code-Review+2: Goutham Pratapa <pratapagoutham@gmail.com>
+Workflow+1: Goutham Pratapa <pratapagoutham@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Mon, 18 Sep 2017 09:02:01 +0000
+Reviewed-on: https://review.openstack.org/504883
+Project: openstack/python-kingbirdclient
+Branch: refs/heads/master
