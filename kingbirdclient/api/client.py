@@ -22,7 +22,7 @@ def client(kingbird_url=None, username=None, api_key=None,
            endpoint_type='publicURL', service_type='synchronization',
            auth_token=None, user_id=None, cacert=None, insecure=False,
            profile=None, auth_type='keystone', client_id=None,
-           client_secret=None, **kwargs):
+           client_secret=None, session=None, **kwargs):
     if kingbird_url and not isinstance(kingbird_url, six.string_types):
         raise RuntimeError('Kingbird url should be a string.')
 
@@ -43,6 +43,7 @@ def client(kingbird_url=None, username=None, api_key=None,
         auth_type=auth_type,
         client_id=client_id,
         client_secret=client_secret,
+        session=session,
         **kwargs
     )
 

@@ -105,10 +105,10 @@ def authenticate(kingbird_url=None, username=None,
         raise RuntimeError(
             'Only user name or user id should be set'
         )
-    user_domain_name = kwargs['user_domain_name']
-    user_domain_id = kwargs['user_domain_id']
-    project_domain_name = kwargs['project_domain_name']
-    project_domain_id = kwargs['project_domain_id']
+    user_domain_name = kwargs.get('user_domain_name')
+    user_domain_id = kwargs.get('user_domain_id')
+    project_domain_name = kwargs.get('project_domain_name')
+    project_domain_id = kwargs.get('project_domain_id')
 
     if session is None:
         if auth_token:
