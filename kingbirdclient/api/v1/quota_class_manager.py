@@ -24,7 +24,7 @@ class QuotaClass(base.Resource):
         self._Limit = Limit
 
 
-class quota_class_manager(base.ResourceManager):
+class QuotaClassManager(base.ResourceManager):
     resource_class = QuotaClass
 
     def list_quota_class(self, quota_class):

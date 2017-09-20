@@ -33,7 +33,7 @@ class Resource(base.Resource):
         self.resource_type = resource_type
 
 
-class sync_manager(base.ResourceManager):
+class SyncManager(base.ResourceManager):
     resource_class = Resource
 
     def sync_resources(self, **kwargs):

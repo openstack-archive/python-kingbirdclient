@@ -85,9 +85,9 @@ class Client(object):
         )
 
         # Create all resource managers
-        self.quota_manager = qm.quota_manager(self.http_client)
-        self.quota_class_manager = qcm.quota_class_manager(self.http_client)
-        self.sync_manager = sm.sync_manager(self.http_client)
+        self.quota_manager = qm.QuotaManager(self.http_client)
+        self.quota_class_manager = qcm.QuotaClassManager(self.http_client)
+        self.sync_manager = sm.SyncManager(self.http_client)
 
 
 def authenticate(kingbird_url=None, username=None,
@@ -118,9 +118,7 @@ def authenticate(kingbird_url=None, username=None,
                 project_id=project_id,
                 project_name=project_name,
                 project_domain_name=project_domain_name,
-                project_domain_id=project_domain_id,
-                cacert=cacert,
-                insecure=insecure)
+                project_domain_id=project_domain_id)
 
         elif api_key and (username or user_id):
             auth = auth_plugin.Password(

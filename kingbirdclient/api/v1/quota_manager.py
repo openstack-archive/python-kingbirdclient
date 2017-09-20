@@ -26,7 +26,7 @@ class Quota(base.Resource):
         self._Usage = Usage
 
 
-class quota_manager(base.ResourceManager):
+class QuotaManager(base.ResourceManager):
     resource_class = Quota
 
     def list_defaults(self):
