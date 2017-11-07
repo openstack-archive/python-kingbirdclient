@@ -13,12 +13,13 @@
 #    limitations under the License.
 
 import mock
-
+import os
 from oslo_utils import timeutils
 from oslo_utils import uuidutils
 
 from kingbirdclient.api.v1 import sync_manager as sm
 from kingbirdclient.commands.v1 import sync_manager as sync_cmd
+from kingbirdclient import exceptions
 from kingbirdclient.tests import base
 
 TIME_NOW = timeutils.utcnow().isoformat()
@@ -30,6 +31,41 @@ FAKE_RESOURCE = 'fake_item'
 FAKE_SOURCE_REGION = 'fake_region_1'
 FAKE_TARGET_REGION = 'fake_region_2'
 FAKE_RESOURCE_TYPE = 'fake_resource'
+
+tempdef = """Sync:
+- resource_type: fake_resource_type
+  resources:
+  - fake_resource_1
+  - fake_resource_2
+  source_region:
+  - fake_source_region
+  target_region:
+  - fake_target_region_1
+  - fake_target_region_2
+"""
+RESOURCE_TYPE_INDEX = tempdef.index('resource_type:')
+RESOURCE_INDEX = tempdef.index('resources:')
+SOURCE_INDEX = tempdef.index('source_region:')
+TARGET_INDEX = tempdef.index('target_region:')
+
+tempdefjson = """{
+  "Sync": [
+    {
+      "resource_type": "fake_resource_type",
+      "resources": [
+        "fake_resource_1",
+        "fake_resource_2"
+      ],
+      "source_region":["fake_source_region"],
+      "target_region":["fake_target_region_1","fake_target_region_2"]
+    }
+  ]
+}
+ """
+RESOURCE_TYPE_INDEX_JSON = tempdefjson.index('"resource_type"')
+RESOURCE_INDEX_JSON = tempdefjson.index('"resources"')
+SOURCE_INDEX_JSON = tempdefjson.index('"source_region"')
+TARGET_INDEX_JSON = tempdefjson.index(",", SOURCE_INDEX_JSON)
 
 RESOURCE_DICT = {
     'ID': ID,
@@ -80,6 +116,7 @@ SYNC_RESOURCEMANAGER = sm.Resource(mock, id=RESOURCE_DICT['ID'],
 
 
 class TestCLISyncManagerV1(base.BaseCommandTest):
+    """Testcases for sync command."""
 
     def test_sync_jobs_list(self):
         self.client.sync_manager.list_sync_jobs.return_value = [SYNCMANAGER]
@@ -196,3 +233,143 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
                 '--target', FAKE_TARGET_REGION,
                 '--force'])
         self.assertEqual([(ID, FAKE_STATUS, TIME_NOW)], actual_call[1])
+
+    def test_template_resource_sync_with_template_yaml(self):
+        with open('test_template.yaml', 'w') as f:
+            f.write(tempdef)
+            f.close()
+        self.client.sync_manager.sync_resources.\
+            return_value = [SYNC_RESOURCEMANAGER]
+        actual_call = self.call(
+            sync_cmd.TemplateResourceSync, app_args=[
+                '--template', 'test_template.yaml'])
+        self.assertEqual([(ID, FAKE_STATUS, TIME_NOW)], actual_call[1])
+        os.remove("test_template.yaml")
+
+    def test_template_resource_sync_with_template_yml(self):
+        with open('test_template.yml', 'w') as f:
+            f.write(tempdef)
+            f.close()
+        self.client.sync_manager.sync_resources.\
+            return_value = [SYNC_RESOURCEMANAGER]
+        actual_call = self.call(
+            sync_cmd.TemplateResourceSync, app_args=[
+                '--template', 'test_template.yml'])
+        self.assertEqual([(ID, FAKE_STATUS, TIME_NOW)], actual_call[1])
+        os.remove("test_template.yml")
+
+    def test_template_resource_sync_with_template_json(self):
+        with open('test_template.json', 'w') as f:
+            f.write(tempdefjson)
+            f.close()
+        self.client.sync_manager.sync_resources.\
+            return_value = [SYNC_RESOURCEMANAGER]
+        actual_call = self.call(
+            sync_cmd.TemplateResourceSync, app_args=[
+                '--template', 'test_template.json'])
+        self.assertEqual([(ID, FAKE_STATUS, TIME_NOW)], actual_call[1])
+        os.remove("test_template.json")
+
+    def test_template_resource_sync_without_template(self):
+        self.client.sync_manager.sync_resources.\
+            return_value = [SYNC_RESOURCEMANAGER]
+        self.assertRaises(
+            SystemExit, self.call, sync_cmd.TemplateResourceSync, app_args=[])
+
+    def test_template_resource_sync_invalid_extension(self):
+        self.assertRaises(
+            exceptions.TemplateError, self.call,
+            sync_cmd.TemplateResourceSync,
+            app_args=['--template', 'test_template.yzx'])
+
+    def test_template_resource_sync_source_missing_yaml(self):
+        temp = tempdef.replace(tempdef[SOURCE_INDEX:TARGET_INDEX], "")
+        with open('test_source_missing_template.yaml', 'w') as f:
+            f.write(temp)
+            f.close()
+        self.assertRaises(
+            exceptions.TemplateError, self.call,
+            sync_cmd.TemplateResourceSync,
+            app_args=['--template', 'test_template.yaml'])
+        os.remove("test_source_missing_template.yaml")
+
+    def test_template_resource_sync_target_missing_yaml(self):
+        temp = tempdef.replace(tempdef[TARGET_INDEX:], "")
+        with open('test_target_missing_template.yaml', 'w') as f:
+            f.write(temp)
+            f.close()
+        self.assertRaises(
+            exceptions.TemplateError, self.call,
+            sync_cmd.TemplateResourceSync,
+            app_args=['--template', 'test_template.yaml'])
+        os.remove("test_target_missing_template.yaml")
+
+    def test_template_resource_sync_resource_type_missing_yaml(self):
+        temp = tempdef.replace(tempdef[RESOURCE_TYPE_INDEX:RESOURCE_INDEX], "")
+        with open('test_resource_type_missing_template.yaml', 'w') as f:
+            f.write(temp)
+            f.close()
+        self.assertRaises(
+            exceptions.TemplateError, self.call,
+            sync_cmd.TemplateResourceSync,
+            app_args=['--template', 'test_template.yaml'])
+        os.remove("test_resource_type_missing_template.yaml")
+
+    def test_template_resource_sync_resources_missing_yaml(self):
+        temp = tempdef.replace(tempdef[RESOURCE_INDEX:SOURCE_INDEX], "")
+        with open('test_resource_missing_template.yaml', 'w') as f:
+            f.write(temp)
+            f.close()
+        self.assertRaises(
+            exceptions.TemplateError, self.call,
+            sync_cmd.TemplateResourceSync,
+            app_args=['--template', 'test_template.yaml'])
+        os.remove("test_resource_missing_template.yaml")
+
+    def test_template_resource_sync_source_missing_json(self):
+        temp = tempdefjson.replace(
+            tempdefjson[SOURCE_INDEX_JSON:TARGET_INDEX_JSON + 1], "")
+        with open('test_source_missing_template.json', 'w') as f:
+            f.write(temp)
+            f.close()
+        self.assertRaises(
+            exceptions.TemplateError, self.call,
+            sync_cmd.TemplateResourceSync,
+            app_args=['--template', 'test_template.yaml'])
+        os.remove("test_source_missing_template.json")
+
+    def test_template_resource_sync_target_missing_json(self):
+        temp = tempdefjson.replace(
+            tempdefjson[TARGET_INDEX_JSON:tempdefjson.index("}")], "")
+        with open('test_target_missing_template.json', 'w') as f:
+            f.write(temp)
+            f.close()
+        self.assertRaises(
+            exceptions.TemplateError, self.call,
+            sync_cmd.TemplateResourceSync,
+            app_args=['--template', 'test_template.yaml'])
+        os.remove("test_target_missing_template.json")
+
+    def test_template_resource_sync_resource_type_missing_json(self):
+        temp = tempdefjson.replace(
+            tempdefjson[RESOURCE_TYPE_INDEX_JSON:RESOURCE_INDEX_JSON], "")
+        with open('test_resource_type_missing_template.json', 'w') as f:
+            f.write(temp)
+            f.close()
+        self.assertRaises(
+            exceptions.TemplateError, self.call,
+            sync_cmd.TemplateResourceSync,
+            app_args=['--template', 'test_template.yaml'])
+        os.remove("test_resource_type_missing_template.json")
+
+    def test_template_resource_sync_resources_missing_json(self):
+        temp = tempdefjson.replace(
+            tempdefjson[RESOURCE_INDEX_JSON:SOURCE_INDEX_JSON], "")
+        with open('test_resource_missing_template.json', 'w') as f:
+            f.write(temp)
+            f.close()
+        self.assertRaises(
+            exceptions.TemplateError, self.call,
+            sync_cmd.TemplateResourceSync,
+            app_args=['--template', 'test_template.yaml'])
+        os.remove("test_resource_missing_template.json")

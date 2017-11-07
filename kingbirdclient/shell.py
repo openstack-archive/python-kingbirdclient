@@ -471,6 +471,7 @@ class KingbirdShell(app.App):
             'sync create': sm.ResourceSync,
             'sync list': sm.SyncList,
             'sync show': sm.SyncShow,
+            'sync template': sm.TemplateResourceSync,
             'sync delete': sm.SyncDelete,
         }
 
