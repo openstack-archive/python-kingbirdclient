@@ -17,6 +17,9 @@ from osc_lib.command import command
 from kingbirdclient.commands.v1 import base
 from kingbirdclient import exceptions
 
+import json
+import yaml
+
 
 def format(resources=None):
     columns = (
@@ -139,6 +142,72 @@ class ResourceSync(base.KingbirdLister):
         kwargs['resources'] = parsed_args.resources
         kwargs['source'] = parsed_args.source
         kwargs['target'] = parsed_args.target
+        return kingbird_client.sync_manager.sync_resources(**kwargs)
+
+
+class TemplateResourceSync(base.KingbirdLister):
+    """Sync multiple resource-types to multiple regions."""
+
+    def _get_format_function(self):
+        return sync_format
+
+    def get_parser(self, parsed_args):
+        parser = super(TemplateResourceSync, self).get_parser(parsed_args)
+
+        parser.add_argument(
+            '--template',
+            required=True,
+            help='Specify the name of an input file in .yaml/.yml/.json.'
+        )
+
+        return parser
+
+    def _get_resources(self, parsed_args):
+        kingbird_client = self.app.client_manager.sync_engine
+        kwargs = dict()
+        sync_template = parsed_args.template
+        if sync_template.endswith('.yaml') or sync_template.endswith('.yml') \
+                or sync_template.endswith('.json'):
+            try:
+                if sync_template.endswith('.json'):
+                    with open(sync_template) as json_data:
+                        data = json.load(json_data)
+                else:
+                    data = yaml.load(open(sync_template))
+            except Exception:
+                raise exceptions.TemplateError(
+                    'Syntactical errors in the template')
+        else:
+            raise exceptions.TemplateError(
+                'Provide a template with a valid extension(.yaml/.yml/.json)')
+        for iteration in data['Sync']:
+                    if 'source_region' not in iteration:
+                        raise exceptions.TemplateError(
+                            'source_region parameter is missing in template')
+                    if not iteration['source_region']:
+                        raise exceptions.TemplateError(
+                            'source_region parameter value is missing')
+                    if 'target_region' not in iteration:
+                        raise exceptions.TemplateError(
+                            'target_region parameter is missing in template')
+                    if not iteration['target_region']:
+                        raise exceptions.TemplateError(
+                            'target_region parameter value is missing')
+                    if 'resource_type' not in iteration:
+                        raise exceptions.TemplateError(
+                            'resource_type parameter is missing in template')
+                    if not iteration['resource_type']:
+                        raise exceptions.TemplateError(
+                            'resource_type parameter value is missing')
+                    if 'resources' not in iteration:
+                        raise exceptions.TemplateError(
+                            'resources parameter is missing in template')
+                    if not iteration['resources']:
+                        raise exceptions.TemplateError(
+                            'resources parameter value is missing')
+
+        kwargs.update(data)
+
         return kingbird_client.sync_manager.sync_resources(**kwargs)
 
 
