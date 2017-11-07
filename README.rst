@@ -80,13 +80,51 @@ You can see the list of available commands typing::
 
     $ kingbird --help
 
+About sync template command
+============================
+Provide the input file in .yaml/.yml/.json to sync multiple resource-types to multiple regions
+Sample input file for .yaml/.yml
+--------------------------------
+Eg::
+
+    Sync:
+    - resource_type: fake_resource_type
+      resources:
+      - fake_resource_1
+      - fake_resource_2
+      source_region:
+      - fake_source_region
+      target_region:
+      - fake_target_region_1
+      - fake_target_region_2
+
+
+Sample input file for .json
+--------------------------
+Eg::
+
+    {
+      "Sync": [
+        {
+          "resource_type": "fake_resource_type",
+          "resources": [
+            "fake_resource_1",
+            "fake_resource_2"
+          ],
+          "source_region":["fake_source_region"],
+          "target_region":["fake_target_region_1","fake_target_region_2"]
+        }
+      ]
+    }
+
+
 Useful Links
 ============
 * Free software: Apache license
 * `PyPi`_ - package installation
 * `Launchpad project`_ - release management
 * `Blueprints`_ - feature specifications
-* `Bugs`_ - issue tracking
+* `Bugs` - issue tracking
 * `Source`_
 * `How to Contribute`_
 * `Documentation`_
