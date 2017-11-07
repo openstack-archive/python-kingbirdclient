@@ -54,3 +54,12 @@ class APIException(Exception):
         super(APIException, self).__init__(error_message)
         self.error_code = error_code
         self.error_message = error_message
+
+
+class TemplateError(KingbirdClientException):
+    message = "Insufficient parameters in the template"
+    code = "TEMPLATE_ERROR_EXCEPTION"
+
+    def __init__(self, message=None):
+        if message:
+            self.message = message
