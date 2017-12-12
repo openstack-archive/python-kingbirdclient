@@ -83,7 +83,8 @@ class ResourceManager(object):
         json_object = json_response_key['job_status']
         resource = []
         resource.append(self.resource_class(
-                        self, id=json_object['id'],
+                        self, name=json_object['name'],
+                        id=json_object['id'],
                         status=json_object['status'],
                         created_at=json_object['created_at']))
         return resource
@@ -97,7 +98,8 @@ class ResourceManager(object):
         resource = []
         for json_object in json_objects:
             resource.append(self.resource_class(
-                            self, id=json_object['id'],
+                            self, name=json_object['name'],
+                            id=json_object['id'],
                             status=json_object['sync_status'],
                             created_at=json_object['created_at'],
                             updated_at=json_object['updated_at']))
@@ -112,7 +114,8 @@ class ResourceManager(object):
         resource = []
         for json_object in json_objects:
             resource.append(self.resource_class(
-                            self, resource_name=json_object['resource'],
+                            self, id=json_object['id'],
+                            resource_name=json_object['resource'],
                             source_region=json_object['source_region'],
                             target_region=json_object['target_region'],
                             resource_type=json_object['resource_type'],

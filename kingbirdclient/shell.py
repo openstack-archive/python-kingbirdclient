@@ -13,7 +13,7 @@
 #    limitations under the License.
 
 """
-Command-line interface to the Kingbird APIs
+Command-line interface to the Kingbird APIs.
 """
 
 import logging

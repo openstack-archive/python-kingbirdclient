@@ -92,9 +92,9 @@ Eg::
       resources:
       - fake_resource_1
       - fake_resource_2
-      source_region:
+      source:
       - fake_source_region
-      target_region:
+      target:
       - fake_target_region_1
       - fake_target_region_2
 
@@ -111,8 +111,8 @@ Eg::
             "fake_resource_1",
             "fake_resource_2"
           ],
-          "source_region":["fake_source_region"],
-          "target_region":["fake_target_region_1","fake_target_region_2"]
+          "source":["fake_source_region"],
+          "target":["fake_target_region_1","fake_target_region_2"]
         }
       ]
     }

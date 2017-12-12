@@ -21,8 +21,9 @@ class Resource(base.Resource):
 
     def __init__(self, manager, status, created_at, updated_at=None,
                  resource_type=None, target_region=None,
-                 source_region=None, id=None, resource_name=None,):
+                 source_region=None, name=None, id=None, resource_name=None,):
         self.manager = manager
+        self.name = name
         self.id = id
         self.source_region = source_region
         self.target_region = target_region
@@ -50,9 +51,9 @@ class SyncManager(base.ResourceManager):
             url = '/%s/os-sync/%s' % (tenant, action)
         return self._resource_sync_list(url)
 
-    def sync_job_detail(self, job_id):
+    def sync_job_detail(self, job):
         tenant = self.http_client.project_id
-        url = '/%s/os-sync/%s' % (tenant, job_id)
+        url = '/%s/os-sync/%s' % (tenant, job)
         return self._resource_sync_detail(url)
 
     def delete_sync_job(self, job_id):

@@ -23,6 +23,7 @@ from kingbirdclient import exceptions
 
 def format(resources=None):
     columns = (
+        'NAME',
         'ID',
         'STATUS',
         'CREATED_AT',
@@ -31,6 +32,7 @@ def format(resources=None):
 
     if resources:
         data = (
+            resources.name,
             resources.id,
             resources.status,
             resources.created_at,
@@ -45,6 +47,7 @@ def format(resources=None):
 
 def detail_format(resources=None):
     columns = (
+        'ID',
         'RESOURCE',
         'SOURCE_REGION',
         'TARGET_REGION',
@@ -56,6 +59,7 @@ def detail_format(resources=None):
 
     if resources:
         data = (
+            resources.id,
             resources.resource_name,
             resources.source_region,
             resources.target_region,
@@ -81,6 +85,26 @@ def sync_format(resources=None):
     if resources:
         data = (
             resources.id,
+            resources.status,
+            resources.created_at,
+        )
+
+    else:
+        data = (tuple('<none>' for _ in range(len(columns))),)
+
+    return columns, data
+
+
+def template_sync_format(resources=None):
+    columns = (
+        'NAME',
+        'STATUS',
+        'CREATED_AT',
+    )
+
+    if resources:
+        data = (
+            resources.name,
             resources.status,
             resources.created_at,
         )
@@ -149,7 +173,7 @@ class TemplateResourceSync(base.KingbirdLister):
     """Sync multiple resource-types to multiple regions."""
 
     def _get_format_function(self):
-        return sync_format
+        return template_sync_format
 
     def get_parser(self, parsed_args):
         parser = super(TemplateResourceSync, self).get_parser(parsed_args)
@@ -160,12 +184,18 @@ class TemplateResourceSync(base.KingbirdLister):
             help='Specify the name of an input file in .yaml/.yml/.json.'
         )
 
+        parser.add_argument(
+            '--name',
+            required=True,
+            help='Name of the job.'
+        )
         return parser
 
     def _get_resources(self, parsed_args):
         kingbird_client = self.app.client_manager.sync_engine
         kwargs = dict()
         sync_template = parsed_args.template
+        kwargs['name'] = parsed_args.name
         if sync_template.endswith('.yaml') or sync_template.endswith('.yml') \
                 or sync_template.endswith('.json'):
             try:
@@ -181,16 +211,16 @@ class TemplateResourceSync(base.KingbirdLister):
             raise exceptions.TemplateError(
                 'Provide a template with a valid extension(.yaml/.yml/.json)')
         for iteration in data['Sync']:
-                    if 'source_region' not in iteration:
+                    if 'source' not in iteration:
                         raise exceptions.TemplateError(
                             'source_region parameter is missing in template')
-                    if not iteration['source_region']:
+                    if not iteration['source']:
                         raise exceptions.TemplateError(
                             'source_region parameter value is missing')
-                    if 'target_region' not in iteration:
+                    if 'target' not in iteration:
                         raise exceptions.TemplateError(
                             'target_region parameter is missing in template')
-                    if not iteration['target_region']:
+                    if not iteration['target']:
                         raise exceptions.TemplateError(
                             'target_region parameter value is missing')
                     if 'resource_type' not in iteration:
@@ -247,16 +277,16 @@ class SyncShow(base.KingbirdLister):
         parser = super(SyncShow, self).get_parser(parsed_args)
 
         parser.add_argument(
-            'job_id',
-            help='ID of Job to view the details.'
+            'job',
+            help='ID/Name of the job to view the details.'
         )
 
         return parser
 
     def _get_resources(self, parsed_args):
-        job_id = parsed_args.job_id
+        job = parsed_args.job
         kingbird_client = self.app.client_manager.sync_engine
-        return kingbird_client.sync_manager.sync_job_detail(job_id)
+        return kingbird_client.sync_manager.sync_job_detail(job)
 
 
 class SyncDelete(command.Command):
