@@ -31,7 +31,6 @@ FAKE_RESOURCE = 'fake_item'
 FAKE_SOURCE_REGION = 'fake_region_1'
 FAKE_TARGET_REGION = 'fake_region_2'
 FAKE_RESOURCE_TYPE = 'fake_resource'
-FAKE_NAME = 'fake_name'
 
 tempdef = """Sync:
 - resource_type: fake_resource_type
@@ -69,7 +68,6 @@ SOURCE_INDEX_JSON = tempdefjson.index('"source"')
 TARGET_INDEX_JSON = tempdefjson.index(",", SOURCE_INDEX_JSON)
 
 RESOURCE_DICT = {
-    'NAME': FAKE_NAME,
     'ID': ID,
     'STATUS': FAKE_STATUS,
     'CREATED_AT': TIME_NOW,
@@ -77,21 +75,18 @@ RESOURCE_DICT = {
 }
 
 ACTIVE_RESOURCE_DICT = {
-    'NAME': FAKE_NAME,
     'ID': ID,
     'STATUS': ACTIVE_FAKE_STATUS,
     'CREATED_AT': TIME_NOW,
     'UPDATED_AT': TIME_NOW
 }
 
-SYNCMANAGER = sm.Resource(mock, name=FAKE_NAME,
-                          id=RESOURCE_DICT['ID'],
+SYNCMANAGER = sm.Resource(mock,id=RESOURCE_DICT['ID'],
                           status=RESOURCE_DICT['STATUS'],
                           created_at=RESOURCE_DICT['CREATED_AT'],
                           updated_at=RESOURCE_DICT['UPDATED_AT'])
 
-ACTIVE_SYNCMANAGER = sm.Resource(mock, name=FAKE_NAME,
-                                 id=ACTIVE_RESOURCE_DICT['ID'],
+ACTIVE_SYNCMANAGER = sm.Resource(mock, id=ACTIVE_RESOURCE_DICT['ID'],
                                  status=ACTIVE_RESOURCE_DICT['STATUS'],
                                  created_at=ACTIVE_RESOURCE_DICT['CREATED_AT'],
                                  updated_at=ACTIVE_RESOURCE_DICT['UPDATED_AT'])
@@ -121,11 +116,6 @@ SYNC_RESOURCEMANAGER = sm.Resource(mock, id=RESOURCE_DICT['ID'],
                                    status=RESOURCE_DICT['STATUS'],
                                    created_at=RESOURCE_DICT['CREATED_AT'])
 
-TEMPLATE_SYNC_RESOURCEMANAGER = sm.Resource(mock, name=RESOURCE_DICT['NAME'],
-                                            status=RESOURCE_DICT['STATUS'],
-                                            created_at=RESOURCE_DICT[
-                                            'CREATED_AT'])
-
 
 class TestCLISyncManagerV1(base.BaseCommandTest):
     """Testcases for sync command."""
@@ -133,20 +123,20 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
     def test_sync_jobs_list(self):
         self.client.sync_manager.list_sync_jobs.return_value = [SYNCMANAGER]
         actual_call = self.call(sync_cmd.SyncList)
-        self.assertEqual([(FAKE_NAME, ID, FAKE_STATUS, TIME_NOW, TIME_NOW)],
+        self.assertEqual([(ID, FAKE_STATUS, TIME_NOW, TIME_NOW)],
                          actual_call[1])
 
     def test_negative_sync_jobs_list(self):
         self.client.sync_manager.list_sync_jobs.return_value = []
         actual_call = self.call(sync_cmd.SyncList)
-        self.assertEqual((('<none>', '<none>', '<none>', '<none>', '<none>'),),
+        self.assertEqual((('<none>', '<none>', '<none>', '<none>'),),
                          actual_call[1])
 
     def test_active_sync_jobs_list(self):
         self.client.sync_manager.list_sync_jobs.\
             return_value = [ACTIVE_SYNCMANAGER]
         actual_call = self.call(sync_cmd.SyncList, app_args=['--active'])
-        self.assertEqual([(FAKE_NAME, ID, ACTIVE_FAKE_STATUS,
+        self.assertEqual([(ID, ACTIVE_FAKE_STATUS,
                           TIME_NOW, TIME_NOW)],
                          actual_call[1])
 
@@ -247,17 +237,21 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
                 '--force'])
         self.assertEqual([(ID, FAKE_STATUS, TIME_NOW)], actual_call[1])
 
+    def test_template_resource_sync_file_not_found(self):
+        self.assertRaises(
+            IOError, self.call,
+            sync_cmd.TemplateResourceSync, app_args=['test_template'])
+
     def test_template_resource_sync_with_template_yaml(self):
         with open('test_template.yaml', 'w') as f:
             f.write(tempdef)
             f.close()
         self.client.sync_manager.sync_resources.\
-            return_value = [TEMPLATE_SYNC_RESOURCEMANAGER]
+            return_value = [SYNC_RESOURCEMANAGER]
         actual_call = self.call(
             sync_cmd.TemplateResourceSync, app_args=[
-                '--template', 'test_template.yaml',
-                '--name', FAKE_NAME])
-        self.assertEqual([(FAKE_NAME, FAKE_STATUS, TIME_NOW)], actual_call[1])
+                'test_template.yaml'])
+        self.assertEqual([(ID, FAKE_STATUS, TIME_NOW)], actual_call[1])
         os.remove("test_template.yaml")
 
     def test_template_resource_sync_with_template_yml(self):
@@ -265,12 +259,11 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
             f.write(tempdef)
             f.close()
         self.client.sync_manager.sync_resources.\
-            return_value = [TEMPLATE_SYNC_RESOURCEMANAGER]
+            return_value = [SYNC_RESOURCEMANAGER]
         actual_call = self.call(
             sync_cmd.TemplateResourceSync, app_args=[
-                '--template', 'test_template.yml',
-                '--name', FAKE_NAME])
-        self.assertEqual([(FAKE_NAME, FAKE_STATUS, TIME_NOW)], actual_call[1])
+                'test_template.yml'])
+        self.assertEqual([(ID, FAKE_STATUS, TIME_NOW)], actual_call[1])
         os.remove("test_template.yml")
 
     def test_template_resource_sync_with_template_json(self):
@@ -278,40 +271,28 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
             f.write(tempdefjson)
             f.close()
         self.client.sync_manager.sync_resources.\
-            return_value = [TEMPLATE_SYNC_RESOURCEMANAGER]
+            return_value = [SYNC_RESOURCEMANAGER]
         actual_call = self.call(
             sync_cmd.TemplateResourceSync, app_args=[
-                '--template', 'test_template.json',
-                '--name', FAKE_NAME])
-        self.assertEqual([(FAKE_NAME, FAKE_STATUS, TIME_NOW)], actual_call[1])
+                'test_template.json'])
+        self.assertEqual([(ID, FAKE_STATUS, TIME_NOW)], actual_call[1])
         os.remove("test_template.json")
-
-    def test_template_resource_sync_without_arguments(self):
-        self.client.sync_manager.sync_resources.\
-            return_value = [SYNC_RESOURCEMANAGER]
-        self.assertRaises(
-            SystemExit, self.call, sync_cmd.TemplateResourceSync, app_args=[])
 
     def test_template_resource_sync_without_template(self):
         self.client.sync_manager.sync_resources.\
             return_value = [SYNC_RESOURCEMANAGER]
         self.assertRaises(
             SystemExit, self.call, sync_cmd.TemplateResourceSync,
-            app_args=['--name', FAKE_NAME])
-
-    def test_template_resource_sync_without_name(self):
-        self.client.sync_manager.sync_resources.\
-            return_value = [SYNC_RESOURCEMANAGER]
-        self.assertRaises(
-            SystemExit, self.call, sync_cmd.TemplateResourceSync, app_args=[
-                '--template', 'test_template.yaml'])
+            app_args=[])
 
     def test_template_resource_sync_invalid_extension(self):
+        with open('test_template_invalid_extension.yzx', 'w') as f:
+            f.write("")
         self.assertRaises(
             exceptions.TemplateError, self.call,
             sync_cmd.TemplateResourceSync, app_args=[
-                '--template', 'test_template.yzx',
-                '--name', 'FAKE_NAME'])
+                'test_template_invalid_extension.yzx'])
+        os.remove("test_template_invalid_extension.yzx")
 
     def test_template_resource_sync_source_missing_yaml(self):
         temp = tempdef.replace(tempdef[SOURCE_INDEX:TARGET_INDEX], "")
@@ -321,8 +302,7 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
         self.assertRaises(
             exceptions.TemplateError, self.call,
             sync_cmd.TemplateResourceSync,
-            app_args=['--template', 'test_source_missing_template.yaml',
-                      '--name', FAKE_NAME])
+            app_args=['test_source_missing_template.yaml'])
         os.remove("test_source_missing_template.yaml")
 
     def test_template_resource_sync_target_missing_yaml(self):
@@ -333,8 +313,7 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
         self.assertRaises(
             exceptions.TemplateError, self.call,
             sync_cmd.TemplateResourceSync,
-            app_args=['--template', 'test_target_missing_template.yaml',
-                      '--name', FAKE_NAME])
+            app_args=['test_target_missing_template.yaml'])
         os.remove("test_target_missing_template.yaml")
 
     def test_template_resource_sync_resource_type_missing_yaml(self):
@@ -345,9 +324,7 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
         self.assertRaises(
             exceptions.TemplateError, self.call,
             sync_cmd.TemplateResourceSync,
-            app_args=['--template',
-                      'test_resource_type_missing_template.yaml',
-                      '--name', FAKE_NAME])
+            app_args=['test_resource_type_missing_template.yaml'])
         os.remove("test_resource_type_missing_template.yaml")
 
     def test_template_resource_sync_resources_missing_yaml(self):
@@ -358,8 +335,7 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
         self.assertRaises(
             exceptions.TemplateError, self.call,
             sync_cmd.TemplateResourceSync,
-            app_args=['--template', 'test_resource_missing_template.yaml',
-                      '--name', FAKE_NAME])
+            app_args=['test_resource_missing_template.yaml'])
         os.remove("test_resource_missing_template.yaml")
 
     def test_template_resource_sync_source_missing_json(self):
@@ -371,8 +347,7 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
         self.assertRaises(
             exceptions.TemplateError, self.call,
             sync_cmd.TemplateResourceSync,
-            app_args=['--template', 'test_source_missing_template.json',
-                      '--name', FAKE_NAME])
+            app_args=['test_source_missing_template.json'])
         os.remove("test_source_missing_template.json")
 
     def test_template_resource_sync_target_missing_json(self):
@@ -384,8 +359,7 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
         self.assertRaises(
             exceptions.TemplateError, self.call,
             sync_cmd.TemplateResourceSync,
-            app_args=['--template', 'test_target_missing_template.json',
-                      '--name', FAKE_NAME])
+            app_args=['test_target_missing_template.json'])
         os.remove("test_target_missing_template.json")
 
     def test_template_resource_sync_resource_type_missing_json(self):
@@ -397,9 +371,7 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
         self.assertRaises(
             exceptions.TemplateError, self.call,
             sync_cmd.TemplateResourceSync,
-            app_args=['--template',
-                      'test_resource_type_missing_template.json',
-                      '--name', FAKE_NAME])
+            app_args=['test_resource_type_missing_template.json'])
         os.remove("test_resource_type_missing_template.json")
 
     def test_template_resource_sync_resources_missing_json(self):
@@ -411,6 +383,5 @@ class TestCLISyncManagerV1(base.BaseCommandTest):
         self.assertRaises(
             exceptions.TemplateError, self.call,
             sync_cmd.TemplateResourceSync,
-            app_args=['--template', 'test_resource_missing_template.json',
-                      '--name', FAKE_NAME])
+            app_args=['test_resource_missing_template.json'])
         os.remove("test_resource_missing_template.json")

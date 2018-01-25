@@ -23,7 +23,6 @@ from kingbirdclient import exceptions
 
 def format(resources=None):
     columns = (
-        'NAME',
         'ID',
         'STATUS',
         'CREATED_AT',
@@ -32,7 +31,6 @@ def format(resources=None):
 
     if resources:
         data = (
-            resources.name,
             resources.id,
             resources.status,
             resources.created_at,
@@ -85,26 +83,6 @@ def sync_format(resources=None):
     if resources:
         data = (
             resources.id,
-            resources.status,
-            resources.created_at,
-        )
-
-    else:
-        data = (tuple('<none>' for _ in range(len(columns))),)
-
-    return columns, data
-
-
-def template_sync_format(resources=None):
-    columns = (
-        'NAME',
-        'STATUS',
-        'CREATED_AT',
-    )
-
-    if resources:
-        data = (
-            resources.name,
             resources.status,
             resources.created_at,
         )
@@ -173,71 +151,65 @@ class TemplateResourceSync(base.KingbirdLister):
     """Sync multiple resource-types to multiple regions."""
 
     def _get_format_function(self):
-        return template_sync_format
+        return sync_format
 
     def get_parser(self, parsed_args):
         parser = super(TemplateResourceSync, self).get_parser(parsed_args)
 
         parser.add_argument(
-            '--template',
-            required=True,
+            'template',
             help='Specify the name of an input file in .yaml/.yml/.json.'
         )
 
-        parser.add_argument(
-            '--name',
-            required=True,
-            help='Name of the job.'
-        )
         return parser
 
     def _get_resources(self, parsed_args):
         kingbird_client = self.app.client_manager.sync_engine
         kwargs = dict()
         sync_template = parsed_args.template
-        kwargs['name'] = parsed_args.name
-        if sync_template.endswith('.yaml') or sync_template.endswith('.yml') \
-                or sync_template.endswith('.json'):
-            try:
-                if sync_template.endswith('.json'):
-                    with open(sync_template) as json_data:
-                        data = json.load(json_data)
+        try:
+            with open(sync_template) as template_data:
+                if sync_template.endswith('.yaml') or sync_template.endswith('.yml') \
+                        or sync_template.endswith('.json'):
+                    try:
+                        if sync_template.endswith('.json'):
+                            data = json.load(template_data)
+                        else:
+                            data = yaml.load(template_data)
+                    except Exception:
+                        raise exceptions.TemplateError(
+                            'Syntactical errors in the template')
                 else:
-                    data = yaml.load(open(sync_template))
-            except Exception:
-                raise exceptions.TemplateError(
-                    'Syntactical errors in the template')
-        else:
-            raise exceptions.TemplateError(
-                'Provide a template with a valid extension(.yaml/.yml/.json)')
-        for iteration in data['Sync']:
-                    if 'source' not in iteration:
-                        raise exceptions.TemplateError(
-                            'source_region parameter is missing in template')
-                    if not iteration['source']:
-                        raise exceptions.TemplateError(
-                            'source_region parameter value is missing')
-                    if 'target' not in iteration:
-                        raise exceptions.TemplateError(
-                            'target_region parameter is missing in template')
-                    if not iteration['target']:
-                        raise exceptions.TemplateError(
-                            'target_region parameter value is missing')
-                    if 'resource_type' not in iteration:
-                        raise exceptions.TemplateError(
-                            'resource_type parameter is missing in template')
-                    if not iteration['resource_type']:
-                        raise exceptions.TemplateError(
-                            'resource_type parameter value is missing')
-                    if 'resources' not in iteration:
-                        raise exceptions.TemplateError(
-                            'resources parameter is missing in template')
-                    if not iteration['resources']:
-                        raise exceptions.TemplateError(
-                            'resources parameter value is missing')
-
+                    raise exceptions.TemplateError(
+                        'Invalid extension.Provide .yaml/.yml/.json template')
+            for iteration in data['Sync']:
+                if 'source' not in iteration:
+                    raise exceptions.TemplateError(
+                        'source_region parameter is missing in template')
+                if not iteration['source']:
+                    raise exceptions.TemplateError(
+                        'source_region parameter value is missing')
+                if 'target' not in iteration:
+                    raise exceptions.TemplateError(
+                        'target_region parameter is missing in template')
+                if not iteration['target']:
+                    raise exceptions.TemplateError(
+                        'target_region parameter value is missing')
+                if 'resource_type' not in iteration:
+                    raise exceptions.TemplateError(
+                        'resource_type parameter is missing in template')
+                if not iteration['resource_type']:
+                    raise exceptions.TemplateError(
+                        'resource_type parameter value is missing')
+                if 'resources' not in iteration:
+                    raise exceptions.TemplateError(
+                        'resources parameter is missing in template')
+                if not iteration['resources']:
+                    raise exceptions.TemplateError(
+                        'resources parameter value is missing')
+        except Exception:
+            raise
         kwargs.update(data)
-
         return kingbird_client.sync_manager.sync_resources(**kwargs)
 
 
@@ -277,14 +249,14 @@ class SyncShow(base.KingbirdLister):
         parser = super(SyncShow, self).get_parser(parsed_args)
 
         parser.add_argument(
-            'job',
-            help='ID/Name of the job to view the details.'
+            'job_id',
+            help='ID of the job to view the details.'
         )
 
         return parser
 
     def _get_resources(self, parsed_args):
-        job = parsed_args.job
+        job = parsed_args.job_id
         kingbird_client = self.app.client_manager.sync_engine
         return kingbird_client.sync_manager.sync_job_detail(job)
 
