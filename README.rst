@@ -97,6 +97,7 @@ Eg::
       target:
       - fake_target_region_1
       - fake_target_region_2
+      force: "True"
 
 
 Sample input file for .json
@@ -112,11 +113,13 @@ Eg::
             "fake_resource_2"
           ],
           "source":["fake_source_region"],
-          "target":["fake_target_region_1","fake_target_region_2"]
+          "target":["fake_target_region_1","fake_target_region_2"],
+          "force":"True"
         }
       ]
     }
 
+Note: "force" is optional in .yaml and .json files.
 
 Useful Links
 ============
