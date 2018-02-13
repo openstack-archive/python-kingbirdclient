@@ -175,7 +175,7 @@ class TemplateResourceSync(base.KingbirdLister):
                         if sync_template.endswith('.json'):
                             data = json.load(template_data)
                         else:
-                            data = yaml.load(template_data)
+                            data = yaml.safe_load(template_data)
                     except Exception:
                         raise exceptions.TemplateError(
                             'Syntactical errors in the template')
