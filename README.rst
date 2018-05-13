@@ -2,11 +2,11 @@ Kingbird
 =========
 
 .. image:: https://img.shields.io/pypi/v/python-kingbirdclient.svg
-    :target: https://pypi.python.org/pypi/python-kingbirdclient/
+    :target: https://pypi.org/project/python-kingbirdclient/
     :alt: Latest Version
 
 .. image:: https://img.shields.io/pypi/dm/python-kingbirdclient.svg
-    :target: https://pypi.python.org/pypi/python-kingbirdclient/
+    :target: https://pypi.org/project/python-kingbirdclient/
     :alt: Downloads
 
 Centralised service for multi-region OpenStack deployments.
@@ -132,7 +132,7 @@ Useful Links
 * `How to Contribute`_
 * `Documentation`_
 
-.. _PyPi: https://pypi.python.org/pypi/python-kingbirdclient
+.. _PyPi: https://pypi.org/project/python-kingbirdclient
 .. _Launchpad project: https://launchpad.net/python-kingbirdclient
 .. _Bugs: https://bugs.launchpad.net/python-kingbirdclient
 .. _Blueprints: https://blueprints.launchpad.net/python-kingbirdclient
